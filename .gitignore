@@ -1,0 +1,9 @@
+.cache/
+.venv/
+__pycache__/
+*.py[cod]
+PDMX.csv
+materialized/
+audio/
+*.sf2
+*.sf3
