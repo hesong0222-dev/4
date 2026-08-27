@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "Please cite this catalog and the upstream PDMX publication."
+title: "Orchestra Score–Audio Exact-Match Catalog (10,000)"
+type: dataset
+authors:
+  - family-names: Song
+    given-names: Hael
+repository-code: "https://github.com/hesong0222-dev/4"
+date-released: 2026-08-28
+license: MIT
+references:
+  - type: conference-paper
+    title: "PDMX: A Large-Scale Public Domain MusicXML Dataset for Symbolic Music Processing"
+    authors:
+      - family-names: Long
+        given-names: Phillip
+    year: 2025
+    doi: "10.1109/ICASSP49660.2025.10890217"
+  - type: dataset
+    title: "PDMX v9"
+    doi: "10.5281/zenodo.15571083"
