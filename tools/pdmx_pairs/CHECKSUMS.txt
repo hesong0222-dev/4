@@ -1,0 +1,3 @@
+build_manifest.py.gz.b64  github-blob-sha1:8961414785ec391dee85ffaeff4bb3ad552b6636
+source-branch: data/pdmx-band-pairs-10000
+source-workflow-run: 33094472148
