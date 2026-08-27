@@ -22,7 +22,7 @@ class PipelineTest(unittest.TestCase):
             "song_length.seconds", "song_name", "title", "subtitle", "genres",
             "groups", "tags", "composer_name", "artist_name", "license",
             "license_url", "rating", "n_ratings", "n_views", "is_official",
-            "has_annotations", "has_custom_audio",
+            "has_annotations", "has_custom_audio", "best_unique_arrangement",
         ]
         with tempfile.TemporaryDirectory() as temp:
             temp_path = Path(temp)
@@ -62,8 +62,22 @@ class PipelineTest(unittest.TestCase):
                         "is_official": "False",
                         "has_annotations": "True",
                         "has_custom_audio": "False",
+                        "best_unique_arrangement": "",
                     }
                 )
+            rows.append(
+                {
+                    **rows[0],
+                    "path": "./data/000012.mscz",
+                    "mxl": "./mxl/000012.mxl",
+                    "pdf": "./pdf/000012.pdf",
+                    "mid": "./mid/000012.mid",
+                    "song_name": "Symphony 0 alternate engraving",
+                    "title": "Symphony 0 Full Score alternate engraving",
+                    "subset:deduplicated": "False",
+                    "best_unique_arrangement": "./data/000000.mscz",
+                }
+            )
             # Must be rejected despite containing isolated orchestral programs.
             rows.append(
                 {
@@ -80,6 +94,7 @@ class PipelineTest(unittest.TestCase):
                     "license": "publicdomain", "license_url": "", "rating": "1",
                     "n_ratings": "0", "n_views": "0", "is_official": "False",
                     "has_annotations": "False", "has_custom_audio": "False",
+                    "best_unique_arrangement": "",
                 }
             )
             with source.open("w", encoding="utf-8", newline="") as handle:
@@ -89,20 +104,22 @@ class PipelineTest(unittest.TestCase):
 
             output = temp_path / "data"
             subprocess.run(
-                [sys.executable, str(BUILD), "--input", str(source), "--output-dir", str(output), "--target", "10", "--source-md5", "synthetic"],
+                [sys.executable, str(BUILD), "--input", str(source), "--output-dir", str(output), "--target", "13", "--source-md5", "synthetic"],
                 check=True,
                 capture_output=True,
                 text=True,
             )
             subprocess.run(
-                [sys.executable, str(VERIFY), "--catalog", str(output / "orchestra_exact_10.csv"), "--stats", str(output / "stats.json"), "--target", "10"],
+                [sys.executable, str(VERIFY), "--catalog", str(output / "orchestra_exact_13.csv"), "--stats", str(output / "stats.json"), "--target", "13"],
                 check=True,
                 capture_output=True,
                 text=True,
             )
             stats = json.loads((output / "stats.json").read_text(encoding="utf-8"))
-            self.assertEqual(stats["selected_exact_matches"], 10)
-            self.assertEqual(stats["qualifying_candidates_before_defensive_dedup"], 12)
+            self.assertEqual(stats["selected_exact_matches"], 13)
+            self.assertEqual(stats["qualifying_candidates_before_defensive_dedup"], 13)
+            self.assertEqual(stats["selected_deduplicated_records"], 12)
+            self.assertEqual(stats["selected_additional_arrangements"], 1)
             self.assertEqual(stats["rejection_counts"]["not_orchestral_or_too_small"], 1)
 
 
