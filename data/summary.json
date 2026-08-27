@@ -1,0 +1,251 @@
+{
+  "target": 10000,
+  "mapped_total": 24390,
+  "eligible_exact_pairs": 17599,
+  "strict_band_exact_pairs": 0,
+  "broad_band_ensemble_exact_pairs": 0,
+  "target_reached_by_eligible_exact_pairs": true,
+  "target_reached_by_strict_band": false,
+  "target_reached_by_broad_band_ensemble": false,
+  "mapping": {
+    "counts": {
+      "hf_rows": 24390,
+      "mapped": 24390,
+      "mapped_eligible": 17599,
+      "eligible:multi_instrument_other": 17599
+    },
+    "samples": {}
+  },
+  "pdmx": {
+    "counts": {
+      "total": 254077,
+      "multi_instrument": 65964,
+      "eligible": 34910
+    },
+    "eligible_tiers": {
+      "multi_instrument_other": 34910
+    },
+    "most_common_track_strings": [
+      [
+        "0-91",
+        3075
+      ],
+      [
+        "52-52-52-52",
+        2393
+      ],
+      [
+        "0-0",
+        2362
+      ],
+      [
+        "0-0-0-0",
+        1141
+      ],
+      [
+        "52-52-52-52-52",
+        916
+      ],
+      [
+        "73-73-73-73",
+        799
+      ],
+      [
+        "0-0-0",
+        735
+      ],
+      [
+        "0-52",
+        635
+      ],
+      [
+        "0-0-0-0-0",
+        558
+      ],
+      [
+        "73-73",
+        516
+      ],
+      [
+        "52-52-52",
+        462
+      ],
+      [
+        "52-52",
+        387
+      ],
+      [
+        "40-40-41-42",
+        289
+      ],
+      [
+        "73-73-73",
+        278
+      ],
+      [
+        "19-73-73-73-73",
+        272
+      ],
+      [
+        "48-48",
+        256
+      ],
+      [
+        "0-40",
+        254
+      ],
+      [
+        "0-0-0-0-0-0",
+        253
+      ],
+      [
+        "52-52-52-52-52-52",
+        249
+      ],
+      [
+        "19-19",
+        245
+      ],
+      [
+        "73-73-73-73-73",
+        240
+      ],
+      [
+        "0-73-73-73-73",
+        232
+      ],
+      [
+        "0-52-52",
+        192
+      ],
+      [
+        "0-73",
+        186
+      ],
+      [
+        "19-57-58-60",
+        163
+      ],
+      [
+        "0-21",
+        152
+      ],
+      [
+        "57-68-69-70-71",
+        132
+      ],
+      [
+        "0-42",
+        131
+      ],
+      [
+        "42-73-73-73-73",
+        126
+      ],
+      [
+        "1-1",
+        119
+      ],
+      [
+        "0-52-52-52-52",
+        119
+      ],
+      [
+        "0-68",
+        115
+      ],
+      [
+        "40-40-41-42-43",
+        113
+      ],
+      [
+        "24-24",
+        111
+      ],
+      [
+        "64-65-66-67",
+        107
+      ],
+      [
+        "56-56-57-58-60",
+        105
+      ],
+      [
+        "6-73-73-73-73",
+        104
+      ],
+      [
+        "40-40",
+        101
+      ],
+      [
+        "57-57-57-57",
+        95
+      ],
+      [
+        "0-71",
+        83
+      ],
+      [
+        "73-73-73-73-73-73",
+        70
+      ],
+      [
+        "53-53-53-53",
+        69
+      ],
+      [
+        "40-42",
+        67
+      ],
+      [
+        "56-57-58-95",
+        67
+      ],
+      [
+        "0-52-52-52",
+        67
+      ],
+      [
+        "52-52-52-52-52-52-52-52",
+        64
+      ],
+      [
+        "0-0-0-0-0-0-0",
+        62
+      ],
+      [
+        "0-0-0-0-0-0-0-0",
+        59
+      ],
+      [
+        "71-71-71-71",
+        57
+      ],
+      [
+        "0-56",
+        56
+      ]
+    ]
+  },
+  "definitions": {
+    "eligible_exact_pair": [
+      "PDMX subset:no_license_conflict is true",
+      "PDMX subset:all_valid is true (MXL/PDF/MID present and valid)",
+      "PDMX is_best_unique_arrangement is true",
+      "n_tracks >= 2",
+      "Hugging Face audio basename maps uniquely to the PDMX score ID",
+      "Hugging Face dataset states the audio was synthesized from multi-instrument PDMX MIDI"
+    ],
+    "strict_band": [
+      "strict_core_band: >=4 tracks including drums/percussion, bass, guitar/keys, and a lead family",
+      "rhythm_section_band: >=3 tracks including drums/percussion, guitar/keys, and a lead family",
+      "genre_labeled_band: >=3 tracks, band-related genre/tag, and >=2 recognized instrument families"
+    ]
+  },
+  "limitations": [
+    "Exactness is score-to-synthesis exactness, not proof that a separate commercial/human recording follows the score.",
+    "PDMX license metadata is uploader-supplied; no-license-conflict reduces internal/public metadata disagreement but is not independent copyright clearance.",
+    "The manifest references official repositories and does not redistribute score/audio payloads."
+  ]
+}
