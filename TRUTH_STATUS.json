@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "audited_at": "2026-08-28T02:10:00+09:00",
+  "repository": "hesong0222-dev/4",
+  "truth_policy": "Only row-level artifacts that exist and pass stated gates are counted.",
+  "verified": {
+    "mapped_score_audio_rows": 24390,
+    "eligible_exact_score_synthesis_pairs": 17599,
+    "frozen_top_subset": 10000,
+    "strict_band_pairs": 0,
+    "broad_band_ensemble_pairs": 0,
+    "orchestral_full_score_pairs": 0,
+    "jazz_pairs": 0,
+    "materialized_score_payloads_in_git": 0,
+    "materialized_audio_payloads_in_git": 0
+  },
+  "exactness": "Audio is synthesized from the corresponding PDMX MIDI; no independent human-performance identity is claimed.",
+  "source_artifact": {
+    "workflow_run_id": 33094472148,
+    "artifact_id": 9655970352,
+    "name": "pdmx-exact-pair-manifest",
+    "artifact_sha256": "986b5333074c29a5cc45a4a91e12f367ce338d014937926420f2c8adcf438dae",
+    "artifact_size_bytes": 10091286
+  },
+  "acceptance_gate_per_field": {
+    "minimum_unique_arrangements": 10000,
+    "requires_actual_symbolic_score": true,
+    "requires_actual_score_derived_audio": true,
+    "requires_duplicate_and_split_leakage_check": true,
+    "requires_field_specific_quality_validation": true,
+    "requires_checksums": true
+  },
+  "withdrawn_claims": [
+    "10,000 verified orchestral full-score records",
+    "5,000 verified jazz pairs",
+    "strict band catalog completion"
+  ]
+}

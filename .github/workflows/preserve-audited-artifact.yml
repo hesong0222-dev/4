@@ -1,0 +1,123 @@
+name: Preserve audited PDMX artifact once
+
+on:
+  push:
+    branches:
+      - data/truth-repair-and-import-20260828
+    paths:
+      - .github/workflows/preserve-audited-artifact.yml
+      - IMPORT_AUDITED_ARTIFACT
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: preserve-audited-pdmx-artifact
+  cancel-in-progress: true
+
+jobs:
+  preserve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Download the already-verified workflow artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf .artifact data/.incoming
+          mkdir -p .artifact data/.incoming
+          gh api \
+            -H 'Accept: application/vnd.github+json' \
+            "/repos/${GITHUB_REPOSITORY}/actions/artifacts/9655970352/zip" \
+            > .artifact/pdmx-exact-pair-manifest.zip
+          echo '986b5333074c29a5cc45a4a91e12f367ce338d014937926420f2c8adcf438dae  .artifact/pdmx-exact-pair-manifest.zip' | sha256sum -c -
+          unzip -q .artifact/pdmx-exact-pair-manifest.zip -d data/.incoming
+
+      - name: Independently validate row counts and invariants
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import csv
+          import json
+          from pathlib import Path
+
+          root = Path('data/.incoming')
+          required = {
+              'all_mapped_score_audio_pairs.csv': 24390,
+              'eligible_exact_pairs.csv': 17599,
+              'top_10000_exact_pairs.csv': 10000,
+              'hf_audio_index.csv': 24390,
+          }
+
+          for name, expected in required.items():
+              path = root / name
+              if not path.is_file():
+                  raise SystemExit(f'missing artifact file: {path}')
+              with path.open(newline='', encoding='utf-8-sig') as handle:
+                  rows = list(csv.DictReader(handle))
+              if len(rows) != expected:
+                  raise SystemExit(f'{name}: expected {expected}, got {len(rows)}')
+              if name in {'eligible_exact_pairs.csv', 'top_10000_exact_pairs.csv'}:
+                  ids = [row['pair_id'] for row in rows]
+                  if len(ids) != len(set(ids)):
+                      raise SystemExit(f'{name}: duplicate pair_id')
+                  if any(str(row['eligible_exact_pair']).lower() != 'true' for row in rows):
+                      raise SystemExit(f'{name}: non-eligible row present')
+                  if any(str(row['subset_no_license_conflict']).lower() != 'true' for row in rows):
+                      raise SystemExit(f'{name}: license-conflict row present')
+                  if any(str(row['subset_all_valid']).lower() != 'true' for row in rows):
+                      raise SystemExit(f'{name}: invalid score-format row present')
+
+          summary = json.loads((root / 'summary.json').read_text(encoding='utf-8'))
+          expected_summary = {
+              'mapped_total': 24390,
+              'eligible_exact_pairs': 17599,
+              'strict_band_exact_pairs': 0,
+              'broad_band_ensemble_exact_pairs': 0,
+          }
+          for key, expected in expected_summary.items():
+              if summary.get(key) != expected:
+                  raise SystemExit(f'summary {key}: expected {expected}, got {summary.get(key)}')
+          PY
+
+      - name: Preserve compressed manifests and checksums
+        run: |
+          set -euo pipefail
+          gzip -9 -c data/.incoming/eligible_exact_pairs.csv > data/verified_exact_pairs_17599.csv.gz
+          gzip -9 -c data/.incoming/top_10000_exact_pairs.csv > data/verified_exact_pairs_top10000.csv.gz
+          gzip -9 -c data/.incoming/all_mapped_score_audio_pairs.csv > data/all_mapped_pairs_24390.csv.gz
+          gzip -9 -c data/.incoming/hf_audio_index.csv > data/hf_audio_index_24390.csv.gz
+          cp data/.incoming/summary.json data/summary.json
+          cp data/.incoming/source_checksums.json data/source_checksums.json
+          (
+            cd data
+            sha256sum \
+              verified_exact_pairs_17599.csv.gz \
+              verified_exact_pairs_top10000.csv.gz \
+              all_mapped_pairs_24390.csv.gz \
+              hf_audio_index_24390.csv.gz \
+              summary.json \
+              source_checksums.json \
+              > SHA256SUMS
+          )
+          rm -rf data/.incoming .artifact
+
+      - name: Commit preserved data once
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data
+          if git diff --cached --quiet; then
+            echo 'Verified manifests are already preserved.'
+            exit 0
+          fi
+          git commit -m 'data: preserve 17,599 verified exact PDMX score-synthesis pairs [skip ci]'
+          git push origin "HEAD:${GITHUB_REF_NAME}"

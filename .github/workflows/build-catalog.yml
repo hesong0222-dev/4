@@ -1,82 +1,18 @@
-name: Build verified 10k orchestra catalog
+name: Legacy PDMX orchestra selector (manual only)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - .github/workflows/build-catalog.yml
   workflow_dispatch:
 
 permissions:
-  contents: write
-
-concurrency:
-  group: orchestra-catalog-${{ github.ref }}
-  cancel-in-progress: true
-
-env:
-  TARGET: '10000'
+  contents: read
 
 jobs:
-  build:
+  notice:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 2
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-
-      - name: Test pipeline locally
+      - name: Explain disabled workflow
         run: |
-          python3 -m unittest discover -s tests -v
-          python3 -m py_compile scripts/*.py
-
-      - name: Download and verify PDMX v9 metadata
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p .cache
-          curl -L --fail --retry 5 --retry-all-errors --retry-delay 5 \
-            'https://zenodo.org/records/15571083/files/PDMX.csv?download=1' \
-            -o .cache/PDMX.csv
-          echo '30392ccf38bb63ce70e7afae70f9c88c  .cache/PDMX.csv' | md5sum -c -
-
-      - name: Build and verify exactly 10,000 rows
-        shell: bash
-        run: |
-          set -euo pipefail
-          rm -rf data
-          SOURCE_MD5="$(md5sum .cache/PDMX.csv | awk '{print $1}')"
-          python3 scripts/build_manifest.py \
-            --input .cache/PDMX.csv \
-            --output-dir data \
-            --target "$TARGET" \
-            --source-md5 "$SOURCE_MD5"
-          python3 scripts/verify_manifest.py \
-            --catalog "data/orchestra_exact_${TARGET}.csv" \
-            --stats data/stats.json \
-            --target "$TARGET"
-          (cd data && sha256sum -c SHA256SUMS)
-          {
-            echo '## Verified orchestra catalog'
-            echo
-            echo '\`data/stats.json\`:'
-            echo '```json'
-            cat data/stats.json
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Commit generated catalog once
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add data
-          if git diff --cached --quiet; then
-            echo 'Catalog is unchanged.'
-            exit 0
-          fi
-          git commit -m 'data: add verified 10,000-row orchestra catalog [skip ci]'
-          git push
+          echo 'This legacy selector previously made an unsupported 10,000-orchestra claim.'
+          echo 'It is intentionally disabled. Use the audited manifests and field-specific validators instead.'
+          exit 1
