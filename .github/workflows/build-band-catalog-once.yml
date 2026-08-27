@@ -1,0 +1,111 @@
+name: Build exact band score-audio catalog (one-shot)
+
+on:
+  push:
+    branches:
+      - data/band-score-audio-10000
+    paths:
+      - .github/workflows/build-band-catalog-once.yml
+      - scripts/build_band_exact.py.gz.b64
+      - scripts/band_requirements.txt
+
+permissions:
+  contents: write
+
+concurrency:
+  group: band-score-audio-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-band-catalog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PDMX_URL: https://zenodo.org/records/15571083/files/PDMX.csv?download=1
+      PDMX_MD5: 30392ccf38bb63ce70e7afae70f9c88c
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: scripts/band_requirements.txt
+
+      - name: Decode and compile collector
+        shell: bash
+        run: |
+          base64 -d scripts/build_band_exact.py.gz.b64 | gzip -d > scripts/build_band_exact.py
+          python -m py_compile scripts/build_band_exact.py
+
+      - name: Install minimal dependencies
+        run: python -m pip install --disable-pip-version-check -r scripts/band_requirements.txt
+
+      - name: Download and verify PDMX v8 index
+        shell: bash
+        run: |
+          curl -L --fail --retry 5 --retry-delay 3 --connect-timeout 30 \
+            "$PDMX_URL" -o PDMX.csv
+          echo "$PDMX_MD5  PDMX.csv" | md5sum -c -
+
+      - name: Build exact mapped band catalog
+        run: |
+          rm -rf data_band
+          python scripts/build_band_exact.py \
+            --input PDMX.csv \
+            --output-dir data_band \
+            --target 10000 \
+            --source-md5 "$PDMX_MD5"
+
+      - name: Verify exact row count and uniqueness
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+
+          root = Path('data_band')
+          catalog = root / 'band_exact_10000.csv'
+          rows = list(csv.DictReader(catalog.open(encoding='utf-8', newline='')))
+          assert len(rows) == 10000, len(rows)
+          for key in ('match_id', 'source_record_id', 'hf_row', 'mxl_path', 'pdf_path', 'midi_path'):
+              values = [row[key] for row in rows]
+              assert all(values), key
+              assert len(values) == len(set(values)), key
+          assert all(row['audio_match_type'] == 'existing_synthesized_audio_from_same_pdmx_midi' for row in rows)
+          stats = json.loads((root / 'stats.json').read_text(encoding='utf-8'))
+          assert stats['selection_complete'] is True
+          assert stats['selected_exact_matches'] == 10000
+          print(json.dumps({
+              'rows': len(rows),
+              'strict': stats['selected_strict_band_matches'],
+              'broad': stats['selected_broad_band_matches'],
+              'classes': stats['band_class_counts'],
+          }, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Commit generated catalog to isolated branch
+        shell: bash
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -f data_band
+          if git diff --cached --quiet; then
+            echo 'No catalog changes to commit.'
+          else
+            git commit -m 'Add exact 10,000 band score-audio catalog'
+            git push origin HEAD:data/band-score-audio-10000
+          fi
+
+      - name: Upload diagnostics and catalog
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exact-band-score-audio-catalog
+          path: data_band/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 9
