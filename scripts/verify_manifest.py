@@ -32,19 +32,22 @@ def main() -> int:
     assert len({r["source_record_id"] for r in rows}) == args.target
     assert len({r["mxl_path"] for r in rows}) == args.target
     assert all(r["pdf_path"] and r["midi_path"] and r["mxl_path"] for r in rows)
-    assert all(
-        r["symbolic_match_guarantee"] == "exact_same_source_score_conversion"
-        for r in rows
-    )
+    assert all(r["symbolic_match_guarantee"] == "exact_same_source_score_conversion" for r in rows)
     assert all(r["subset_no_license_conflict"] == "True" for r in rows)
     assert all(r["subset_all_valid"] == "True" for r in rows)
-    assert all(r["subset_deduplicated"] == "True" for r in rows)
+    assert set(r["subset_deduplicated"] for r in rows) <= {"True", "False"}
+    assert all(r["duplicate_group_id"] for r in rows)
     assert set(r["confidence_tier"] for r in rows) <= {"A", "B", "C"}
 
     stats = json.loads(args.stats.read_text(encoding="utf-8"))
     assert stats["selected_exact_matches"] == args.target
     assert stats["selection_complete"] is True
     assert stats["catalog_sha256"] == sha256_file(args.catalog)
+    assert (
+        stats["selected_deduplicated_records"]
+        + stats["selected_additional_arrangements"]
+        == args.target
+    )
 
     print(
         json.dumps(
