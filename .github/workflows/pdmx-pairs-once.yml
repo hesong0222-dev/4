@@ -1,0 +1,54 @@
+name: Build PDMX exact-pair manifest (one-shot)
+
+on:
+  push:
+    branches:
+      - data/pdmx-band-pairs-10000
+    paths:
+      - .github/workflows/pdmx-pairs-once.yml
+      - tools/pdmx_pairs/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pdmx-pairs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-manifest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tools/pdmx_pairs/requirements.txt
+
+      - name: Restore manifest builder
+        run: base64 --decode tools/pdmx_pairs/build_manifest.py.gz.b64 | gzip --decompress > tools/pdmx_pairs/build_manifest.py
+
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check -r tools/pdmx_pairs/requirements.txt
+
+      - name: Build and validate manifest
+        env:
+          TARGET_PAIRS: '10000'
+          OUT_DIR: out
+          CACHE_DIR: .cache/pdmx-pairs
+        run: python tools/pdmx_pairs/build_manifest.py
+
+      - name: Upload result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdmx-exact-pair-manifest
+          path: out/
+          if-no-files-found: error
+          retention-days: 3
+          compression-level: 9
