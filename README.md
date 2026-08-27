@@ -10,7 +10,7 @@ Every accepted record points to a PDF, compressed MusicXML (`.mxl`), and MIDI (`
 |---|---|
 | PDF, MXL, and MIDI come from the same source score | Required |
 | Audio is rendered from that row’s exact MIDI | Required |
-| Source row is valid, deduplicated, non-paywalled, non-draft, and in PDMX’s no-license-conflict subset | Required |
+| Source row is valid, non-paywalled, non-draft, and in PDMX’s no-license-conflict subset | Required |
 | A human orchestra used the identical printed edition | **Not claimed** |
 | Expressive timing of a commercial recording is aligned bar-by-bar | **Not claimed** |
 
@@ -36,7 +36,9 @@ A row must pass all provenance and availability filters, then satisfy an orchest
 - `string_orchestra`
 - `wind_orchestra`
 - `explicit_orchestra`
+- `chamber_orchestra`
 - `inferred_orchestra`
+- `orchestral_ensemble`
 
 Confidence tiers are `A` (explicit and strongly supported), `B` (strong instrumentation evidence), and `C` (conservative inference for large orchestral palettes). See [docs/METHODOLOGY.md](docs/METHODOLOGY.md).
 
@@ -91,7 +93,7 @@ make test
 make verify
 ```
 
-The verifier hard-fails unless there are exactly 10,000 unique match IDs, source record IDs, MXL paths, and required provenance flags, and unless the catalog SHA-256 matches `stats.json`.
+The verifier hard-fails unless there are exactly 10,000 unique match IDs, source record IDs, and MXL paths, all provenance flags are valid, duplicate-group IDs are present, and the catalog SHA-256 matches `stats.json`. PDMX’s deduplicated records are ranked first; additional engravings or arrangements are admitted only as needed, with progressive per-group caps recorded in `stats.json`.
 
 ## Sources
 
