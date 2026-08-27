@@ -4,7 +4,7 @@
 
 - `match_id`: stable release-local ID (`PDMX-ORCH-00001` …).
 - `source`, `source_doi`, `source_record_url`: dataset provenance.
-- `source_record_id`: source path stem used for defensive uniqueness.
+- `source_record_id`: stable ID derived from the complete source path.
 - `title`, `subtitle`, `composer`, `artist`: source metadata.
 - `license`, `license_url`: per-record source license metadata.
 
@@ -33,8 +33,9 @@
 - `audio_render_recipe`: command template for rendering the row’s MIDI.
 - `symbolic_match_guarantee`: always `exact_same_source_score_conversion`.
 
-## Required subset flags
+## Required subset and duplication fields
 
 - `subset_no_license_conflict`.
 - `subset_all_valid`.
-- `subset_deduplicated`.
+- `subset_deduplicated`: whether PDMX marks this source row as its best unique arrangement.
+- `duplicate_group_id`: stable hash of PDMX’s representative arrangement path, used to cap repeated engravings/arrangements.
