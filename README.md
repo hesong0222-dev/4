@@ -1,50 +1,61 @@
-# Orchestra Score–Audio / Score–MIDI Match Catalog (10,000+)
+# Orchestra Score–Audio / Score–MIDI Match Catalog
 
-A reproducible catalog targeting **10,000+ unique orchestral full-score matches**. The project now counts two exact-match classes separately:
+This repository is a reproducible orchestral **source/candidate catalog pipeline**. It does **not** currently contain 10,000 materialized score/audio binaries, and the latest strict main-branch build did not complete successfully.
 
-1. **real performance ↔ full score** — a human/orchestral recording validated against the score/edition as strongly as the available evidence permits;
-2. **full score ↔ MIDI** — MIDI generated from, or distributed with, the exact same symbolic score source.
+## Current audited status — 2026-08-28
 
-A MIDI-only record is valid even when no real audio exists. It is never mislabeled as a human performance.
+- A one-shot PDMX workflow on branch `data/pdmx-band-pairs-10000` completed successfully with target `10,000` and produced a temporary GitHub Actions manifest artifact.
+- The later stricter main-branch workflow failed at `Build and verify exactly 10,000 rows`; its generated-catalog commit step was skipped.
+- Therefore the earlier 10k artifact is **provisional candidate-manifest evidence**, not a claim that 10,000 final verified pairs are stored in this repository.
+- `materialized MXL/PDF/MIDI`, `rendered audio`, and `human-reviewed` counts are separate metrics and must never be inferred from a target number, workflow name, README title, or temporary artifact.
+
+The broader, cross-domain source audit now lives in `hesong0222-dev/CodexWorkspace/datasets/music-source-registry/`.
 
 ## Exactness classes
 
-| Class | Counted as exact? | Requirement |
-|---|---:|---|
-| `real_audio_verified_exact` | yes | recording and score validated at work/movement/arrangement/edition-content level |
-| `midi_same_source_exact` | yes | PDF/MusicXML/LilyPond/MuseScore score and MIDI share the same source record |
-| `real_audio_strong_match` | no, separate tier | strong work/movement match but edition-level identity not proven |
-| `midi_score_candidate_unverified` | no | orchestral MIDI exists but the corresponding score source is not yet proven |
+| Class | Meaning |
+|---|---|
+| `same_symbolic_source_exact` | PDF/MusicXML/LilyPond/MuseScore representation and MIDI share the same source record |
+| `score_rendered_audio_exact` | audio is rendered directly from that exact symbolic/MIDI record |
+| `performance_midi_audio_exact` | real performance MIDI and audio were captured synchronously |
+| `score_performance_aligned` | separate score and real performance have explicit alignment annotations |
+| `work_identity_match` | title/composer/work identity matches but edition/content exactness is not proven |
+| `candidate_unverified` | discovery candidate only |
 
-## Main exact score–MIDI sources
+Do not relabel the lower-confidence classes as `exact`.
 
-- **PDMX v9** — 250K+ public-domain MusicXML scores; associated MXL/PDF/MIDI exports when valid. This is the bulk source.
-- **Mutopia Project / Orchestra** — curated public-domain/open scores with LilyPond source, PDF and MIDI from the same edition.
-- **OpenScore Orchestra** — approximately 100 high-quality transcribed orchestral movements; MIDI can be deterministically exported from the exact MuseScore/MusicXML source.
+## Primary symbolic source
 
-Discovery-only corpora such as **SymphonyNet** and **SOD** are not counted as exact until a corresponding full score is proven. See [docs/SOURCES.md](docs/SOURCES.md).
+**PDMX v9** is the bulk source because it supplies MusicXML-derived records and, when valid, associated MXL/PDF/MID exports. Preferred filtering is:
 
-## PDMX selection rules
+1. `subset:no_license_conflict == True`
+2. `subset:all_valid == True`
+3. work/arrangement deduplication
+4. orchestral instrumentation classification
+5. strict path/provenance/uniqueness verification
 
-A row must pass provenance/availability checks and an orchestral instrumentation rule derived from PDMX General MIDI programs plus metadata. The catalog distinguishes:
+PDMX reports 222,856 songs in `no_license_conflict`; that is an upstream source-pool number, not an orchestral count.
 
-- `full_orchestra`
-- `string_orchestra`
-- `wind_orchestra`
-- `explicit_orchestra`
-- `chamber_orchestra`
-- `inferred_orchestra`
-- `orchestral_ensemble`
+## Counting rule
 
-Confidence tiers are `A`, `B`, and `C`. Reduction/solo-piano/lead-sheet and explicit non-orchestral band arrangements are rejected. See [docs/METHODOLOGY.md](docs/METHODOLOGY.md).
+Every number reported by this project must include one of these levels:
 
-## Reproduce the PDMX catalog
+- `upstream_reported`
+- `discovered`
+- `candidate`
+- `parsed`
+- `rights_cleared`
+- `deduplicated`
+- `accepted`
+- `materialized`
+- `rendered`
+- `human_reviewed`
+
+If the level is omitted, the number is not publication-ready.
+
+## Reproduce the PDMX candidate build
 
 ```bash
-curl -L --fail --retry 5 \
-  'https://zenodo.org/records/15571083/files/PDMX.csv?download=1' \
-  -o PDMX.csv
-
 python3 scripts/build_manifest.py \
   --input PDMX.csv \
   --output-dir data \
@@ -56,31 +67,10 @@ python3 scripts/verify_manifest.py \
   --target 10000
 ```
 
-For each accepted PDMX row, the catalog retains the same-source `mxl`, `pdf`, and `mid` paths. MIDI audio rendering is optional and does not change the record’s class from `midi_same_source_exact`.
+A successful run must commit or otherwise persist its generated manifest and validation report before it can be called complete.
 
-## Generated data
+## Storage boundary
 
-The build is designed to produce:
+The repository intentionally stores source links, manifests, validation logic, metadata and hashes rather than duplicating hundreds of gigabytes of upstream score/audio binaries.
 
-- `data/orchestra_exact_10000.csv`
-- `data/orchestra_exact_10000.jsonl`
-- `data/shards/part-*.csv`
-- `data/sample_100.csv`
-- `data/custom_audio_metadata_candidates.csv`
-- `data/stats.json`
-- `data/SHA256SUMS`
-
-The repository stores manifests, source links, validation logic and hashes rather than duplicating hundreds of gigabytes of upstream binaries.
-
-## Important status rule
-
-A target number is not reported as completed until the generated catalog has actually passed uniqueness, path, provenance and checksum validation. Candidate rows and verified rows are always reported separately.
-
-## Sources
-
-- Phillip Long et al., **PDMX: A Large-Scale Public Domain MusicXML Dataset for Symbolic Music Processing**, ICASSP 2025, DOI `10.1109/ICASSP49660.2025.10890217`.
-- PDMX v9, DOI `10.5281/zenodo.15571083`.
-- Mutopia Project Orchestra catalog.
-- OpenScore Orchestra v1.0.1.
-
-See [DATA_LICENSE.md](DATA_LICENSE.md) before redistributing source scores, MIDIs, or rendered audio.
+See `DATA_LICENSE.md` and `docs/METHODOLOGY.md` for provenance and classification rules.
