@@ -1,0 +1,35 @@
+{
+  "all_have_detail_url": true,
+  "all_list_score_midi_pdf": true,
+  "catalog_sha256": "e1aa99dcd780bb8b13882487e5ea375d6b87183df6a1af84b70f88e1c7a0dc0f",
+  "claim": "Each record's Mutopia page exposes LilyPond source, MIDI and PDF downloads for the same typeset edition.",
+  "counts_by_ensemble_class": {
+    "ballet_vocal_orchestra": 2,
+    "chamber_orchestra": 3,
+    "chamber_orchestra_concerto": 1,
+    "full_orchestra": 13,
+    "opera_orchestra": 15,
+    "orchestra": 5,
+    "orchestra_concerto": 16,
+    "string_orchestra": 1,
+    "string_orchestra_concerto": 2,
+    "vocal_orchestra": 9
+  },
+  "enumerated_records": 67,
+  "exactness_class": "same_symbolic_source_exact",
+  "human_performance_claim": false,
+  "license_counts": {
+    "CC BY 2.5": 4,
+    "CC BY 3.0": 8,
+    "CC BY-SA 3.0": 7,
+    "CC BY-SA 4.0": 2,
+    "Public Domain": 46
+  },
+  "scope": "All 67 records returned by Mutopia's Orchestra instrument listing as inspected on 2026-08-28.",
+  "source": "Mutopia Project",
+  "source_listing": "https://www.mutopiaproject.org/cgibin/make-table.cgi?Instrument=Orchestra",
+  "unique_mutopia_ids": 67,
+  "validation": {
+    "passed": true
+  }
+}
