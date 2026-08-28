@@ -1,0 +1,225 @@
+{
+  "policy_version": "adaptive-humanization-2026-08-28.1",
+  "status": "RENDER_HOLD",
+  "render_audio_enabled": false,
+  "target_policy": {
+    "input_future": "audio rendered from render_control MIDI",
+    "target": "original canonical MIDI",
+    "render_control_is_target": false,
+    "ground_truth_class": "SYNTH_CANONICAL_SCORE_TARGET"
+  },
+  "hierarchy": ["song", "section", "instrument_family", "player_track", "event"],
+  "song_level": {
+    "provisional_intensity_mixture": {
+      "NONE_OR_TIGHT": 0.15,
+      "SUBTLE": 0.30,
+      "MODERATE": 0.35,
+      "STRONG": 0.15,
+      "EXPERIMENTAL": 0.05
+    },
+    "genre_adjustment_required": true,
+    "genre_confidence_fallback": "prefer SUBTLE/MODERATE rather than force a genre groove",
+    "macro_tempo_warp": {
+      "enabled": false,
+      "reason": "separate gated feature until canonical target time semantics are verified"
+    }
+  },
+  "templates": [
+    "STRAIGHT_TIGHT", "LIGHT_HUMAN", "SWING_54", "SWING_58", "SWING_62",
+    "LAID_BACK_LIGHT", "LAID_BACK_HEAVY", "PUSH_LIGHT", "PUSH_CHORUS",
+    "MPC_16_A", "MPC_16_B", "FUNK_16", "SHUFFLE_8", "SHUFFLE_16",
+    "POCKET", "ORCHESTRA_LOOSE", "DRUNK_EXPERIMENTAL"
+  ],
+  "timing_model_components": [
+    "song_groove_by_subdivision",
+    "section_offset",
+    "anchor_group_shared_offset",
+    "persistent_performer_bias",
+    "phrase_correlated_drift",
+    "instrument_role_offset",
+    "small_event_residual"
+  ],
+  "anchor_groups": {
+    "RHYTHM_CORE": ["kick", "bass"],
+    "BACKBEAT": ["snare", "clap", "selected_comping"],
+    "COMPING": ["piano", "electric_piano", "organ", "rhythm_guitar"],
+    "HORN_SECTION": ["trumpet", "trombone", "sax"],
+    "STRING_SECTION": ["violin_1", "violin_2", "viola", "cello", "double_bass"],
+    "TIMEKEEPERS": ["hi_hat", "ride"],
+    "LEAD_FOLLOW": ["lead", "supporting_accompaniment"]
+  },
+  "instrument_profiles": {
+    "drums.kick": {
+      "groove_probability": "high",
+      "timing": "tight; centered or slightly ahead depending on style",
+      "anchor": "RHYTHM_CORE",
+      "fast_density_behavior": "tighten strongly"
+    },
+    "drums.snare": {
+      "groove_probability": "high",
+      "timing": "may be intentionally behind beat in laid-back styles",
+      "anchor": "BACKBEAT",
+      "bar_consistency": "high"
+    },
+    "drums.hihat_ride": {
+      "groove_probability": "high",
+      "timing": "primary swing/subdivision carrier; can remain tighter than snare",
+      "velocity": "alternating/metrically structured accents"
+    },
+    "drums.fills": {
+      "groove_probability": "medium",
+      "timing": "phrase aware",
+      "fast_density_behavior": "protect event order aggressively"
+    },
+    "bass": {
+      "groove_probability": "high",
+      "timing": "persistent ahead/center/laid-back player tendency",
+      "anchor": "RHYTHM_CORE",
+      "duration": "style-dependent separation/overlap"
+    },
+    "keys.piano_ep": {
+      "groove_probability": "medium-high",
+      "timing": "comping can sit behind/around snare; lead lines tighter",
+      "chord_spread": "small-to-medium, tempo aware",
+      "velocity": "metrical + phrase + section energy"
+    },
+    "keys.organ": {
+      "groove_probability": "medium",
+      "velocity": "lower importance",
+      "duration_cc": "higher importance"
+    },
+    "guitar.acoustic": {
+      "groove_probability": "high",
+      "chord_spread": "largest among common pitched chord instruments",
+      "direction": "down/up chosen from rhythmic context or deterministic alternation",
+      "fast_density_behavior": "shorten spread"
+    },
+    "guitar.electric_rhythm": {
+      "groove_probability": "high",
+      "chord_spread": "smaller than acoustic",
+      "anchor": "COMPING"
+    },
+    "guitar.electric_lead": {
+      "groove_probability": "medium",
+      "timing": "pick-like microtiming; high-gain fast passages tight",
+      "chord_spread": "minimal"
+    },
+    "strings.solo": {
+      "groove_probability": "medium",
+      "timing": "phrase/rubato-like microtiming rather than pocket swing",
+      "duration": "legato overlap allowed",
+      "fast_density_behavior": "tighten strongly"
+    },
+    "strings.section": {
+      "groove_probability": "medium",
+      "timing": "shared section offset plus small player residual",
+      "attack_spread": "larger on slow sustained chords, smaller on ostinato/runs"
+    },
+    "brass": {
+      "groove_probability": "medium-high",
+      "timing": "section-specific attack; sustained chords may spread slightly",
+      "duration": "breath-related phrase gaps without adding notes",
+      "fast_density_behavior": "tighten"
+    },
+    "woodwind": {
+      "groove_probability": "medium",
+      "timing": "tongued repeats tighter; lyrical lines looser",
+      "duration": "breath phrase shaping",
+      "fast_density_behavior": "tighten"
+    },
+    "voice_choir": {
+      "groove_probability": "medium-low",
+      "timing": "small ensemble onset spread",
+      "dynamics": "phrase swell/release"
+    },
+    "orchestral_percussion": {
+      "groove_probability": "medium-low",
+      "timing": "relatively tight",
+      "fast_density_behavior": "protect rolls/tremolos"
+    }
+  },
+  "section_strength_ranges": {
+    "intro": [0.70, 0.90],
+    "verse": [0.85, 1.00],
+    "pre_chorus": [0.95, 1.05],
+    "chorus": [1.00, 1.15],
+    "bridge": [0.85, 1.10],
+    "instrumental_solo": [0.95, 1.15],
+    "breakdown": [0.65, 0.90],
+    "outro": [0.70, 1.00]
+  },
+  "fast_passage": {
+    "coverage_required": true,
+    "density_bins_notes_per_second": {
+      "normal": "<6",
+      "fast": "6-10",
+      "very_fast": "10-14",
+      "extreme": ">14"
+    },
+    "timing_strength_multiplier": [
+      {"condition": "<4", "value": 1.0},
+      {"condition": "4-8", "value": 0.75},
+      {"condition": "8-12", "value": 0.45},
+      {"condition": "12-16", "value": 0.25},
+      {"condition": ">16", "value": "0.10-0.15"}
+    ],
+    "event_order_reversal_allowed": false
+  },
+  "clean_tier_content_policy": {
+    "pitch_identity_change": false,
+    "note_count_change": false,
+    "delete_canonical_note": false,
+    "add_ghost_note": false,
+    "add_flam": false,
+    "add_unlabeled_fill": false,
+    "add_unlabeled_ornament": false,
+    "same_note_articulation_change": true,
+    "velocity_change": true,
+    "duration_change": true,
+    "microtiming_change": true,
+    "chord_spread": true,
+    "controller_change": "only when target semantics permit"
+  },
+  "required_analysis_before_plan": [
+    "tempo", "meter", "key", "genre probabilities", "ensemble",
+    "instrument roles", "gridness", "local note density", "syncopation",
+    "subdivision onset histogram", "simultaneous onset groups", "repeated patterns",
+    "section/phrase boundaries", "drum pattern", "kick-bass coincidence", "polyphony",
+    "register", "duration distribution", "velocity distribution", "pedal/CC presence",
+    "fast passage locations"
+  ],
+  "source_classification": [
+    "CANONICAL_GRID_MIDI",
+    "LIKELY_SCORE_MIDI",
+    "PERFORMANCE_MIDI",
+    "MIXED_OR_EDITED_MIDI",
+    "UNKNOWN_MIDI"
+  ],
+  "qa_fail_conditions": [
+    "canonical MIDI hash changed",
+    "pitch multiset changed in clean tier",
+    "note count changed in clean tier",
+    "canonical event mapping not one-to-one",
+    "distinct event order reversed",
+    "chord spread crossed next distinct canonical onset",
+    "non-positive duration produced",
+    "pathological same-pitch overlap produced",
+    "local timing safety bound exceeded",
+    "fast-passage attenuation missing",
+    "split/work/arrangement identity missing",
+    "seed/template/version missing"
+  ],
+  "required_reports": [
+    "timing offset mean/median/std by track",
+    "p95/max absolute timing offset",
+    "velocity delta stats",
+    "duration delta stats",
+    "fast-region versus normal-region displacement",
+    "anchor-group timing correlation",
+    "simultaneous groups spread count",
+    "percentage of untouched notes"
+  ],
+  "references": [
+    "https://www.ableton.com/en/live-manual/12/using-grooves/"
+  ]
+}
