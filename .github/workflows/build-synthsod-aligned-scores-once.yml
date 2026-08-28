@@ -1,0 +1,92 @@
+name: Enumerate SynthSOD aligned score records once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/build-synthsod-aligned-scores-once.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: synthsod-aligned-scores-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  enumerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate enumerator locally first
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile \
+            scripts/build_synthsod_aligned_score_manifest.py \
+            tests/test_synthsod_aligned_score_manifest.py
+          python3 tests/test_synthsod_aligned_score_manifest.py
+
+      - name: Download and verify pinned SynthSOD v2 aligned scores
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location \
+            --retry 6 --retry-all-errors --retry-delay 3 \
+            --output /tmp/SynthSOD_aligned_scores.zip \
+            'https://zenodo.org/records/15575778/files/SynthSOD_aligned_scores.zip?download=1'
+          printf '%s  %s\n' \
+            '121bf77f59869ea332e8968d791a3f8c' \
+            '/tmp/SynthSOD_aligned_scores.zip' | md5sum --check -
+
+      - name: Enumerate record-level score metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT='data/synthsod-aligned-score-audio'
+          rm -rf "$OUT"
+          python3 scripts/build_synthsod_aligned_score_manifest.py \
+            --archive /tmp/SynthSOD_aligned_scores.zip \
+            --output "$OUT" \
+            --minimum 300
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          summary = json.loads(Path('data/synthsod-aligned-score-audio/summary.json').read_text(encoding='utf-8'))
+          assert summary['validation']['passed'] is True
+          assert summary['validation']['archive_md5_matches'] is True
+          assert summary['enumerated_aligned_score_records'] >= 300
+          assert summary['enumerated_aligned_score_records'] == summary['unique_record_ids']
+          assert summary['enumerated_aligned_score_records'] == summary['unique_member_paths']
+          print(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True))
+          PY
+          (cd "$OUT" && sha256sum --check SHA256SUMS)
+          {
+            echo '## SynthSOD aligned score inventory'
+            echo
+            echo '```json'
+            cat "$OUT/summary.json"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit generated inventory once
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/synthsod-aligned-score-audio
+          if git diff --cached --quiet; then
+            echo 'Generated inventory is unchanged.'
+            exit 0
+          fi
+          git commit -m 'data: add SynthSOD aligned score inventory [skip ci]'
+          git pull --rebase origin main
+          git push origin HEAD:main
