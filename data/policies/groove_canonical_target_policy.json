@@ -1,0 +1,151 @@
+{
+  "policy_version": "2026-08-28.1",
+  "status": "RENDER_HOLD",
+  "authoritative_spec": "docs/GROOVE-AUGMENTATION-TRAINING-SPEC.md",
+  "render_audio_enabled": false,
+  "core_pair": {
+    "input": "audio rendered from groove-transformed copy of canonical MIDI",
+    "target": "original canonical/quantized MIDI",
+    "render_control_midi_is_target": false,
+    "planned_ground_truth_class": "SYNTH_CANONICAL_SCORE_TARGET"
+  },
+  "ground_truth_classes": {
+    "REAL_CAPTURED_MIDI": {
+      "supervised": true,
+      "meaning": "MIDI synchronously captured with a real performance"
+    },
+    "REAL_SCORE_ALIGNED": {
+      "supervised": true,
+      "meaning": "separate score/MIDI aligned to real audio after strict validation"
+    },
+    "SYNTH_EXACT_TIMING_TARGET": {
+      "supervised": true,
+      "meaning": "audio rendered from the exact target MIDI without timing-changing augmentation"
+    },
+    "SYNTH_CANONICAL_SCORE_TARGET": {
+      "supervised": true,
+      "meaning": "audio rendered from groove-transformed copy while original canonical MIDI remains the target"
+    },
+    "MODEL_PSEUDO_LABEL": {
+      "supervised": false,
+      "meaning": "MIDI estimated from audio by a model; quarantine only"
+    }
+  },
+  "hard_invariants": [
+    "original canonical MIDI is immutable",
+    "groove operates on a copy only",
+    "target MIDI remains the original canonical MIDI",
+    "render-control MIDI must never silently become the target",
+    "groove does not change pitch identity or note count",
+    "event ordering cannot reverse across distinct canonical onsets",
+    "all variants from the same work/arrangement inherit one split",
+    "every transform is reproducible from template version, parameters and seed",
+    "source provenance and rights metadata propagate to every derivative",
+    "new audio rendering remains disabled until explicit approval"
+  ],
+  "allowed_while_render_hold": [
+    "MIDI source discovery and registry",
+    "MIDI event parsing",
+    "deduplication and clustering",
+    "tempo/meter/key/note-density/velocity/polyphony/drum-note analysis",
+    "fast-passage detection",
+    "groove-template design",
+    "seeded render-control MIDI dry runs",
+    "transform QA",
+    "split and manifest preparation"
+  ],
+  "forbidden_while_render_hold": [
+    "new VST/SoundFont/DAW batch audio rendering",
+    "counting planned renders as completed pairs",
+    "overwriting canonical MIDI with groove-applied MIDI"
+  ],
+  "groove_engine": {
+    "style": "DAW_GROOVE_POOL",
+    "selection": "random_seeded_reproducible",
+    "weighting": "configurable_genre_aware",
+    "dimensions": [
+      "subdivision_relative_timing",
+      "swing_ratio",
+      "timing_strength",
+      "velocity_strength",
+      "duration_strength",
+      "correlated_humanize",
+      "role_relative_push_pull",
+      "intra_chord_spread",
+      "optional_pedal_control_timing"
+    ],
+    "templates": [
+      "STRAIGHT_TIGHT",
+      "LIGHT_HUMAN",
+      "SWING_54",
+      "SWING_58",
+      "SWING_62",
+      "LAID_BACK_LIGHT",
+      "LAID_BACK_HEAVY",
+      "PUSH_LIGHT",
+      "PUSH_CHORUS",
+      "MPC_16_A",
+      "MPC_16_B",
+      "FUNK_16",
+      "SHUFFLE_8",
+      "SHUFFLE_16",
+      "POCKET",
+      "ORCHESTRA_LOOSE",
+      "DRUNK_EXPERIMENTAL"
+    ],
+    "numeric_template_parameters_status": "PROVISIONAL_UNTIL_LISTENING_AND_DATA_CALIBRATION"
+  },
+  "fast_passage": {
+    "coverage_required": true,
+    "groove_must_not_create_new_pitches_for_speed": true,
+    "reporting_bins_notes_per_second": {
+      "normal": "<6",
+      "fast": "6-10",
+      "very_fast": "10-14",
+      "extreme": ">14"
+    },
+    "provisional_items_with_fast_passage_fraction": {
+      "min": 0.20,
+      "max": 0.30,
+      "status": "PROVISIONAL_PENDING_REAL_CORPUS_HISTOGRAM"
+    },
+    "timing_strength_multiplier_by_density": [
+      {"condition": "<4 notes/s", "multiplier": 1.0},
+      {"condition": "4-8 notes/s", "multiplier": 0.75},
+      {"condition": "8-12 notes/s", "multiplier": 0.45},
+      {"condition": "12-16 notes/s", "multiplier": 0.25},
+      {"condition": ">16 notes/s", "multiplier": "0.10-0.15"}
+    ]
+  },
+  "source_roles": {
+    "PDMX_v9": "bulk canonical score MIDI",
+    "SymphonyNet": "orchestral multi-track candidate pool",
+    "POP909": "real-pop arrangement structure",
+    "nightingale-ai/midi-data": "large real-song candidate/distribution pool; rights quarantine",
+    "ASAP": "expressive/performance timing reference and aligned-evaluation candidate",
+    "International_Piano_eCompetition": "expressive/virtuosic performance reference; rights quarantine",
+    "ryanrudes/game-midis": "fast/complex arrangement candidate; rights review required",
+    "Hvdogra/jazz-midi-dataset": "not counted as raw MIDI source because inspected tracked data is primarily TXT"
+  },
+  "current_project_counts": {
+    "pdmx_strict_symbolic_records": 77321,
+    "existing_audited_pdmx_synth_pairs": 17599,
+    "new_groove_audio_renders_created_under_this_policy": 0
+  },
+  "split_policy": {
+    "unit": "work_and_arrangement_cluster",
+    "same_source_all_groove_variants_same_split": true,
+    "same_source_all_plugin_preset_renders_same_split": true,
+    "file_hash_only_is_sufficient": false
+  },
+  "open_decisions": [
+    "template sampling probabilities",
+    "variants per source MIDI",
+    "final genre/instrument timing ranges",
+    "final fast-passage quota after distribution analysis",
+    "VST/preset mapping",
+    "audio rendering run size/start",
+    "pedal augmentation policy by source class",
+    "canonical-onset loss/tolerance design"
+  ]
+}
