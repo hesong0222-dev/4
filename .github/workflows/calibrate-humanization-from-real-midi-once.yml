@@ -30,7 +30,11 @@ jobs:
           set -euo pipefail
           python3 -m py_compile \
             scripts/analyze_expression_corpora.py \
-            scripts/run_expression_calibration_v2.py
+            scripts/run_expression_calibration_v2.py \
+            scripts/run_expression_calibration_v3.py \
+            scripts/build_humanization_plan.py \
+            scripts/apply_humanization_v2.py
+          PYTHONPATH=scripts python3 scripts/build_humanization_plan.py --self-test >/dev/null
           PYTHONPATH=scripts python3 - <<'PY'
           import struct, tempfile
           from pathlib import Path
@@ -40,8 +44,7 @@ jobs:
               b=[v&127]; v >>= 7
               while v: b.append((v&127)|128); v >>= 7
               return bytes(reversed(b))
-          ev=bytearray()
-          ev += vlq(0)+bytes([0xff,0x51,3,0x07,0xa1,0x20])
+          ev=bytearray(); ev += vlq(0)+bytes([0xff,0x51,3,0x07,0xa1,0x20])
           for p in (60,64,67): ev += vlq(0)+bytes([0x90,p,80])
           ev += vlq(480)+bytes([0x80,60,0])
           for p in (64,67): ev += vlq(0)+bytes([0x80,p,0])
@@ -52,7 +55,7 @@ jobs:
               assert len(m['notes'])==3 and abs(m['duration']-.5)<1e-9
               assert a.chord_spreads(m['notes'],.01)==[0.0]
               assert len(cluster_attacks([0.0,0.005,0.009,0.25],.025))==2
-          print('MIDI parser + attack clustering smoke test: PASS')
+          print('parser/planner/attack clustering checks: PASS')
           PY
 
       - name: Download pinned Groove MIDI Dataset MIDI-only release
@@ -83,7 +86,7 @@ jobs:
           set -euo pipefail
           OUT='data/calibration/humanization-empirical-20260828'
           rm -rf "$OUT"
-          PYTHONPATH=scripts python3 scripts/run_expression_calibration_v2.py \
+          PYTHONPATH=scripts python3 scripts/run_expression_calibration_v3.py \
             --gmd /tmp/gmd \
             --asap /tmp/asap \
             --epiano /tmp/epiano \
@@ -104,17 +107,11 @@ jobs:
           assert c['calibration_version']=='empirical-2026-08-28.2-attack-density'
           assert c['fast_passage_reference']['density_semantics'].startswith('attack/onset')
           prov={
-            'generated_utc':'2026-08-28',
-            'audio_rendered':False,
-            'gmd':{
-              'release':'groove-v1.0.0-midionly.zip',
-              'sha256':'651cbc524ffb891be1a3e46d89dc82a1cecb09a57c748c7b45b844c4841dcc1e',
-              'license':'CC BY 4.0'
-            },
+            'generated_utc':'2026-08-28','audio_rendered':False,
+            'gmd':{'release':'groove-v1.0.0-midionly.zip','sha256':'651cbc524ffb891be1a3e46d89dc82a1cecb09a57c748c7b45b844c4841dcc1e','license':'CC BY 4.0'},
             'asap':{'commit':'see git_snapshot.txt','license':'CC BY-NC-SA 4.0'},
             'pop909':{'commit':'see git_snapshot.txt','use':'structural advisory only'},
-            'international_e_piano':{'commit':'see git_snapshot.txt','underlying_midi_license':'unclear; advisory aggregate statistics only'}
-          }
+            'international_e_piano':{'commit':'see git_snapshot.txt','underlying_midi_license':'unclear; advisory aggregate statistics only'}}
           (p/'source_provenance.json').write_text(json.dumps(prov,indent=2,sort_keys=True)+'\n')
           PY
           {
@@ -130,7 +127,7 @@ jobs:
           )
           cat "$OUT/summary.json" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Commit corrected aggregate calibration only
+      - name: Commit final aggregate calibration only
         shell: bash
         run: |
           set -euo pipefail
@@ -141,5 +138,5 @@ jobs:
             echo 'Calibration outputs unchanged.'
             exit 0
           fi
-          git commit -m 'data: correct humanization calibration to attack density [skip ci]'
+          git commit -m 'data: finalize attack-density humanization calibration [skip ci]'
           git push origin HEAD:data/empirical-humanization-calibration-20260828
