@@ -1,84 +1,14 @@
 name: Preprocess audited training-ready corpus once
 
 on:
-  push:
-    branches: [data/training-preprocess-20260828]
-    paths:
-      - .github/workflows/preprocess-audited-training-ready.yml
   workflow_dispatch:
 
 permissions:
-  contents: write
-
-concurrency:
-  group: audited-training-preprocess-${{ github.ref }}
-  cancel-in-progress: true
+  contents: read
 
 jobs:
-  preprocess:
+  archived:
+    if: ${{ false }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 10
-
-      - name: Restore and syntax-check locally validated preprocessor
-        shell: bash
-        run: |
-          set -euo pipefail
-          base64 --decode tools/training_preprocess/preprocess_training_ready.py.gz.b64 \
-            | gzip --decompress > /tmp/preprocess_training_ready.py
-          python3 -m py_compile /tmp/preprocess_training_ready.py
-
-      - name: Build training-ready manifests and hard gates
-        shell: bash
-        run: |
-          set -euo pipefail
-          OUT='data/training-ready/pdmx-synth-v1'
-          rm -rf "$OUT"
-          python3 /tmp/preprocess_training_ready.py \
-            --exact data/audited-pdmx-score-synthesis/verified_exact_pairs_17599.csv.gz \
-            --output "$OUT" \
-            --expected-exact 17599 \
-            --dev 100 --sealed 150 --rare 50 --review 500
-          python3 - <<'PY'
-          import json
-          from pathlib import Path
-          p=Path('data/training-ready/pdmx-synth-v1/preprocessing_status.json')
-          s=json.loads(p.read_text(encoding='utf-8'))
-          assert s['status']=='TRAINING_READY_SYNTHETIC'
-          assert s['input_exact_pairs']==17599
-          assert s['joined_exact_pairs']==17599
-          assert s['pseudo_labels_in_supervised_manifest']==0
-          assert s['strict_eval_representatives']=={'dev':100,'sealed_test':150,'rare_challenge':50}
-          assert s['human_review_queue']==500
-          assert s['human_verified_post_training_rows']==0
-          assert s['real_captured_or_real_score_aligned_eval_rows']==0
-          assert all(s['validation'].values())
-          cov=json.loads(Path('data/training-ready/pdmx-synth-v1/coverage_audit.json').read_text())
-          assert cov['records']==17599
-          assert cov['status']=='PASS_WITH_DECLARED_METADATA_GAPS'
-          print(json.dumps(s,ensure_ascii=False,indent=2))
-          print(json.dumps(cov,ensure_ascii=False,indent=2))
-          PY
-          (
-            cd "$OUT"
-            sha256sum --check SHA256SUMS
-          )
-
-      - name: Persist readable preprocessor and outputs
-        shell: bash
-        run: |
-          set -euo pipefail
-          cp /tmp/preprocess_training_ready.py scripts/preprocess_training_ready.py
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add scripts/preprocess_training_ready.py data/training-ready/pdmx-synth-v1
-          if git diff --cached --quiet; then
-            echo 'Training preprocessing is already current.'
-            exit 0
-          fi
-          git commit -m 'data: add leakage-safe training-ready PDMX synth split [skip ci]'
-          git push origin HEAD:data/training-preprocess-20260828
+      - run: echo 'One-shot preprocessing completed and is archived.'
