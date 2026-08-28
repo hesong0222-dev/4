@@ -1,0 +1,79 @@
+{
+  "registry_version": "2026-08-28.1",
+  "purpose": "Empirical timing/velocity/duration/fast-passage calibration without audio rendering",
+  "sources": [
+    {
+      "id": "groove_midi_dataset",
+      "snapshot": "groove-v1.0.0-midionly.zip",
+      "download": "https://storage.googleapis.com/magentadata/datasets/groove/groove-v1.0.0-midionly.zip",
+      "sha256": "651cbc524ffb891be1a3e46d89dc82a1cecb09a57c748c7b45b844c4841dcc1e",
+      "source_grade": "REAL_CAPTURED_MIDI",
+      "calibration_scope": "expressive_timing_drums",
+      "license": "CC-BY-4.0",
+      "rights_status": "CLEAR_WITH_ATTRIBUTION",
+      "expected_files": 1150,
+      "use": ["drum microtiming", "velocity", "fills", "swing", "genre-conditioned groove", "fast-passage protection"]
+    },
+    {
+      "id": "asap_performance_midi",
+      "repository": "fosfrancesco/asap-dataset",
+      "commit": "afc815c75c42e83a79c03feb6da8a35e77d4c6b8",
+      "source_grade": "REAL_CAPTURED_MIDI",
+      "calibration_scope": "expressive_timing_piano",
+      "license": "CC-BY-NC-SA-4.0",
+      "rights_status": "NON_COMMERCIAL",
+      "expected_files": 1067,
+      "use": ["piano microtiming", "rubato-local residual", "velocity", "duration", "chord spread", "fast passages"]
+    },
+    {
+      "id": "international_e_piano",
+      "repository": "studioph/international-e-piano-dataset",
+      "commit": "daa68906166e37daa32be1e1758a3e1b56e6be00",
+      "source_grade": "REAL_CAPTURED_MIDI",
+      "calibration_scope": "expressive_timing_reference_only",
+      "license": "UNKNOWN_FOR_UNDERLYING_MIDI",
+      "rights_status": "REFERENCE_ONLY_QUARANTINE",
+      "use": ["piano timing reference", "velocity", "pedal-aware duration", "virtuosic fast passages"],
+      "restriction": "Statistics only; do not promote files to supervised redistribution/training without rights review."
+    },
+    {
+      "id": "pop909",
+      "repository": "music-x-lab/POP909-Dataset",
+      "commit": "d83e6edba6872a704f5d3b8b32f5cb540088dae6",
+      "source_grade": "CANONICAL_REAL_COMPOSITION_MIDI",
+      "calibration_scope": "structure_only",
+      "license": "REPOSITORY_MIT_DATA_RIGHTS_REVIEW_REQUIRED",
+      "rights_status": "STRUCTURAL_REFERENCE",
+      "expected_works": 909,
+      "use": ["pop structure", "note density", "fast passages", "version clustering"]
+    },
+    {
+      "id": "nightingale_sorted",
+      "repository": "nightingale-ai/midi-data",
+      "commit": "6865a563766348272a4004a975a208b0ace5ab54",
+      "source_grade": "MIDI_CANDIDATE_UNVERIFIED",
+      "calibration_scope": "structure_only",
+      "license": "NO_COLLECTION_LICENSE",
+      "rights_status": "REFERENCE_ONLY_QUARANTINE",
+      "expected_sorted_files": 57765,
+      "use": ["genre breadth", "instrument-role coverage", "tempo/meter/density", "fast-passage prevalence"],
+      "restriction": "Never use as high-confidence human microtiming or supervised ground truth solely from collection membership."
+    },
+    {
+      "id": "game_midis",
+      "repository": "ryanrudes/game-midis",
+      "commit": "84a166099c32d6db101c8bd2f0eccc82c8402ddb",
+      "source_grade": "MIDI_CANDIDATE_UNVERIFIED",
+      "calibration_scope": "structure_only",
+      "license": "UNKNOWN",
+      "rights_status": "REFERENCE_ONLY_QUARANTINE",
+      "use": ["multi-instrument structure", "dense passages", "unusual meters", "synth/orchestral coverage"]
+    }
+  ],
+  "explicit_exclusions": [
+    "E-GMD repeated kit renders as independent symbolic performances",
+    "model-generated MIDI",
+    "audio rendering",
+    "rights-uncertain files as supervised training ground truth"
+  ]
+}

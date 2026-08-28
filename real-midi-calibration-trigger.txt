@@ -1,0 +1,2 @@
+real-midi-calibration-20260828
+MIDI event analysis only. No audio rendering.
