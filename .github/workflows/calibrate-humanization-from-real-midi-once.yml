@@ -28,11 +28,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 -m py_compile scripts/analyze_expression_corpora.py scripts/run_expression_calibration.py
+          python3 -m py_compile \
+            scripts/analyze_expression_corpora.py \
+            scripts/run_expression_calibration_v2.py
           PYTHONPATH=scripts python3 - <<'PY'
           import struct, tempfile
           from pathlib import Path
           import analyze_expression_corpora as a
+          from run_expression_calibration_v2 import cluster_attacks
           def vlq(v):
               b=[v&127]; v >>= 7
               while v: b.append((v&127)|128); v >>= 7
@@ -48,7 +51,8 @@ jobs:
               p=Path(d)/'x.mid'; p.write_bytes(data); m=a.parse_midi(p)
               assert len(m['notes'])==3 and abs(m['duration']-.5)<1e-9
               assert a.chord_spreads(m['notes'],.01)==[0.0]
-          print('local MIDI parser smoke test: PASS')
+              assert len(cluster_attacks([0.0,0.005,0.009,0.25],.025))==2
+          print('MIDI parser + attack clustering smoke test: PASS')
           PY
 
       - name: Download pinned Groove MIDI Dataset MIDI-only release
@@ -73,13 +77,13 @@ jobs:
           mkdir -p /tmp/epiano
           tar -xzf /tmp/epiano.tar.gz -C /tmp/epiano
 
-      - name: Analyze real MIDI and derive conservative calibration
+      - name: Analyze real MIDI using attack density and derive calibration
         shell: bash
         run: |
           set -euo pipefail
           OUT='data/calibration/humanization-empirical-20260828'
           rm -rf "$OUT"
-          PYTHONPATH=scripts python3 scripts/run_expression_calibration.py \
+          PYTHONPATH=scripts python3 scripts/run_expression_calibration_v2.py \
             --gmd /tmp/gmd \
             --asap /tmp/asap \
             --epiano /tmp/epiano \
@@ -90,12 +94,15 @@ jobs:
           from pathlib import Path
           p=Path('data/calibration/humanization-empirical-20260828')
           s=json.loads((p/'summary.json').read_text())
+          c=json.loads((p/'humanization_empirical_calibration.json').read_text())
           assert s['audio_rendered'] is False and s['render_hold'] is True
           assert s['sources']['gmd']['files'] >= 1000
           assert s['sources']['asap']['aligned_performances'] >= 900
           assert s['sources']['pop909']['songs'] >= 900
           assert s['sources']['epiano']['files'] >= 500
           assert s['status'] == 'PASS'
+          assert c['calibration_version']=='empirical-2026-08-28.2-attack-density'
+          assert c['fast_passage_reference']['density_semantics'].startswith('attack/onset')
           prov={
             'generated_utc':'2026-08-28',
             'audio_rendered':False,
@@ -104,7 +111,7 @@ jobs:
               'sha256':'651cbc524ffb891be1a3e46d89dc82a1cecb09a57c748c7b45b844c4841dcc1e',
               'license':'CC BY 4.0'
             },
-            'asap':{'commit':Path('/tmp/asap/.git/refs/heads/master').read_text().strip() if Path('/tmp/asap/.git/refs/heads/master').exists() else 'see git_snapshot.txt','license':'CC BY-NC-SA 4.0'},
+            'asap':{'commit':'see git_snapshot.txt','license':'CC BY-NC-SA 4.0'},
             'pop909':{'commit':'see git_snapshot.txt','use':'structural advisory only'},
             'international_e_piano':{'commit':'see git_snapshot.txt','underlying_midi_license':'unclear; advisory aggregate statistics only'}
           }
@@ -123,7 +130,7 @@ jobs:
           )
           cat "$OUT/summary.json" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Commit aggregate calibration only
+      - name: Commit corrected aggregate calibration only
         shell: bash
         run: |
           set -euo pipefail
@@ -134,5 +141,5 @@ jobs:
             echo 'Calibration outputs unchanged.'
             exit 0
           fi
-          git commit -m 'data: add empirical real-MIDI humanization calibration [skip ci]'
+          git commit -m 'data: correct humanization calibration to attack density [skip ci]'
           git push origin HEAD:data/empirical-humanization-calibration-20260828
