@@ -1,0 +1,249 @@
+name: Calibrate multifamily humanization v4 once
+
+on:
+  push:
+    branches: [data/empirical-humanization-calibration-20260828]
+    paths:
+      - .github/workflows/calibrate-humanization-multifamily-v4-once.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: empirical-humanization-v4-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  calibrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out target repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 20
+
+      - name: Restore and validate MIDI-only analyzers
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 --decode tools/humanization/analyze_additional_expression_sources.py.gz.b64 \
+            | gzip --decompress > scripts/analyze_additional_expression_sources.py
+          python3 -m py_compile \
+            scripts/analyze_expression_corpora.py \
+            scripts/run_expression_calibration_v2.py \
+            scripts/run_expression_calibration_v3.py \
+            scripts/analyze_additional_expression_sources.py \
+            scripts/build_humanization_plan.py \
+            scripts/build_humanization_plan_v4.py \
+            scripts/extract_humanization_metadata.py \
+            scripts/apply_humanization_v2.py
+          PYTHONPATH=scripts python3 scripts/build_humanization_plan_v4.py --self-test >/dev/null
+          echo 'Static + planner self-tests: PASS'
+
+      - name: Fetch compact base performance MIDI sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/gmd
+          curl --fail --location --retry 5 --retry-all-errors \
+            -o /tmp/groove-v1.0.0-midionly.zip \
+            'https://storage.googleapis.com/magentadata/datasets/groove/groove-v1.0.0-midionly.zip'
+          echo '651cbc524ffb891be1a3e46d89dc82a1cecb09a57c748c7b45b844c4841dcc1e  /tmp/groove-v1.0.0-midionly.zip' | sha256sum --check -
+          unzip -q /tmp/groove-v1.0.0-midionly.zip -d /tmp/gmd
+          git clone --depth 1 https://github.com/fosfrancesco/asap-dataset.git /tmp/asap
+          git clone --depth 1 https://github.com/music-x-lab/POP909-Dataset.git /tmp/pop909
+          git clone --depth 1 https://github.com/studioph/international-e-piano-dataset.git /tmp/epiano-repo
+          cat /tmp/epiano-repo/international-e-piano-midi_2002-2018.tar.gz.parta* > /tmp/epiano.tar.gz
+          mkdir -p /tmp/epiano
+          tar -xzf /tmp/epiano.tar.gz -C /tmp/epiano
+
+      - name: Fetch guitar bass and RWC annotation sources only
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-all-errors \
+            -o /tmp/guitarset-annotation.zip \
+            'https://zenodo.org/records/3371780/files/annotation.zip?download=1'
+          echo 'b39b78e63d3446f2e54ddb7a54df9b10  /tmp/guitarset-annotation.zip' | md5sum --check -
+          mkdir -p /tmp/guitarset
+          unzip -q /tmp/guitarset-annotation.zip -d /tmp/guitarset
+
+          curl --fail --location --retry 5 --retry-all-errors \
+            -o /tmp/idmt-bass.zip \
+            'https://zenodo.org/records/7544099/files/IDMT-SMT-BASS-SINGLE-TRACKS.zip?download=1'
+          echo 'c85540c664e8b13badd86880bacf11fa  /tmp/idmt-bass.zip' | md5sum --check -
+          mkdir -p /tmp/idmt-bass
+          unzip -q /tmp/idmt-bass.zip -d /tmp/idmt-bass
+
+          git clone --depth 1 https://github.com/rwc-music/rwc-annotations.git /tmp/rwc
+
+      - name: Fetch URMP symbolic and note annotations only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check --no-cache-dir 'huggingface_hub>=0.34'
+          python3 - <<'PY'
+          from huggingface_hub import snapshot_download
+          snapshot_download(
+              repo_id='J1mmymm/MIMuT_Data_v2',
+              repo_type='dataset',
+              revision='bb320faf307f5d24aeced0e60f9445ff0abce205',
+              allow_patterns=[
+                  'data/urmp/**/*.txt', 'data/urmp/**/*.mid', 'data/urmp/**/*.midi',
+                  'data/urmp/**/*.csv', 'data/urmp/**/*.json', 'data/urmp/**/*.musicxml',
+                  'data/urmp/**/*.xml'
+              ],
+              local_dir='/tmp/mimut',
+          )
+          PY
+          test -d /tmp/mimut/data/urmp
+          if find /tmp/mimut/data/urmp -type f \( -iname '*.wav' -o -iname '*.flac' -o -iname '*.mp3' -o -iname '*.ogg' \) | grep -q .; then
+            echo 'REFUSE: audio file appeared in symbolic-only URMP fetch' >&2
+            exit 1
+          fi
+          echo "URMP symbolic files: $(find /tmp/mimut/data/urmp -type f | wc -l)"
+
+      - name: Recompute base attack-density calibration
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT='data/calibration/humanization-empirical-20260828'
+          rm -rf "$OUT"
+          PYTHONPATH=scripts python3 scripts/run_expression_calibration_v3.py \
+            --gmd /tmp/gmd \
+            --asap /tmp/asap \
+            --epiano /tmp/epiano \
+            --pop909 /tmp/pop909 \
+            --output "$OUT"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('data/calibration/humanization-empirical-20260828')
+          s=json.loads((p/'summary.json').read_text())
+          c=json.loads((p/'humanization_empirical_calibration.json').read_text())
+          assert s['status']=='PASS' and s['audio_rendered'] is False and s['render_hold'] is True
+          assert s['sources']['gmd']['files'] >= 1000
+          assert s['sources']['asap']['aligned_performances'] >= 900
+          assert c['calibration_version']=='empirical-2026-08-28.2-attack-density'
+          assert c['fast_passage_reference']['density_semantics'].startswith('attack/onset')
+          PY
+
+      - name: Calibrate guitar bass strings brass winds voice and synth
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT='data/calibration/humanization-empirical-20260828'
+          PYTHONPATH=scripts python3 scripts/analyze_additional_expression_sources.py \
+            --base "$OUT/humanization_empirical_calibration.json" \
+            --guitarset /tmp/guitarset \
+            --bass /tmp/idmt-bass \
+            --urmp /tmp/mimut/data/urmp \
+            --rwc /tmp/rwc \
+            --output "$OUT"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('data/calibration/humanization-empirical-20260828')
+          s=json.loads((p/'additional_summary.json').read_text())
+          c=json.loads((p/'humanization_empirical_calibration.json').read_text())
+          assert s['status']=='PASS' and s['audio_rendered'] is False
+          assert c['render_audio_enabled'] is False
+          assert c['calibration_version']=='empirical-2026-08-28.4-multifamily'
+          assert s['guitarset_files'] >= 300, s
+          assert s['rwc_files'] >= 100, s
+          fam=c['family_empirical']
+          expected={'drums','keys','guitar','bass','strings','brass','woodwinds','voice','synth'}
+          assert expected.issubset(fam), sorted(fam)
+          assert fam['guitar']['evidence'].startswith('DIRECT_REAL_PERFORMANCE')
+          assert fam['drums']['evidence'].startswith('DIRECT_REAL_CAPTURED')
+          assert fam['keys']['evidence'].startswith('DIRECT_REAL_SCORE_ALIGNED')
+          print(json.dumps(s,indent=2,sort_keys=True))
+          PY
+
+      - name: Verify empirical planner and MIDI-only transformer end to end
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import struct
+          from pathlib import Path
+          def vlq(v):
+              b=[v&127]; v >>= 7
+              while v: b.append((v&127)|128); v >>= 7
+              return bytes(reversed(b))
+          tracks=[]
+          specs=[('Kick',9,0,[36,36,36,36]),('Bass',1,33,[40,43,45,47]),('Guitar',2,25,[52,55,59,64]),('Piano',3,0,[60,64,67,72]),('Violin',4,40,[67,69,71,72]),('Trumpet',5,56,[60,62,64,67]),('Flute',6,73,[72,74,76,79])]
+          for name,ch,program,pitches in specs:
+              e=bytearray(); nb=name.encode(); e+=vlq(0)+bytes([0xff,3,len(nb)])+nb; e+=vlq(0)+bytes([0xc0|ch,program])
+              for i,p in enumerate(pitches):
+                  e+=vlq(0 if i==0 else 240)+bytes([0x90|ch,p,80]); e+=vlq(100)+bytes([0x80|ch,p,0])
+              e+=vlq(0)+bytes([0xff,0x2f,0]); tracks.append(b'MTrk'+struct.pack('>I',len(e))+e)
+          data=b'MThd'+struct.pack('>IHHH',6,1,len(tracks),480)+b''.join(tracks)
+          Path('/tmp/canonical.mid').write_bytes(data)
+          PY
+          PYTHONPATH=scripts python3 scripts/extract_humanization_metadata.py /tmp/canonical.mid -o /tmp/meta.json --genre funk --ensemble band >/dev/null
+          PYTHONPATH=scripts python3 scripts/build_humanization_plan_v4.py /tmp/meta.json -o /tmp/plan.json --calibration data/calibration/humanization-empirical-20260828/humanization_empirical_calibration.json >/dev/null
+          PYTHONPATH=scripts python3 scripts/apply_humanization_v2.py /tmp/canonical.mid /tmp/plan.json -o /tmp/render_control.mid --map-json /tmp/groove_map.json >/dev/null
+          python3 - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          plan=json.loads(Path('/tmp/plan.json').read_text())
+          mp=json.loads(Path('/tmp/groove_map.json').read_text())
+          assert plan['render_audio_enabled'] is False
+          assert plan['clean_tier_constraints']['target_is_original_canonical_midi'] is True
+          assert mp['audio_rendered'] is False and mp['qa']['passed'] is True
+          assert mp['target_midi_sha256']==hashlib.sha256(Path('/tmp/canonical.mid').read_bytes()).hexdigest()
+          out={
+            'validation':'multifamily_v4_midi_only_end_to_end',
+            'audio_rendered':False,
+            'calibration_version':plan['calibration']['version'],
+            'automatic_empirical_families':plan['calibration'].get('automatic_empirical_families',[]),
+            'proxy_families':plan['calibration'].get('lower_confidence_proxy_families',[]),
+            'still_provisional_families':plan['calibration'].get('still_provisional_families',[]),
+            'transform_qa':mp['qa'],
+          }
+          Path('tools/humanization/validation_multifamily_v4.json').write_text(json.dumps(out,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(out,indent=2,sort_keys=True))
+          PY
+
+      - name: Persist provenance checksums and aggregate results once
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT='data/calibration/humanization-empirical-20260828'
+          python3 - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          p=Path('data/calibration/humanization-empirical-20260828')
+          def rev(path): return subprocess.check_output(['git','-C',path,'rev-parse','HEAD'],text=True).strip()
+          prov={
+            'generated_utc':'2026-08-28','audio_rendered':False,
+            'GMD':{'release':'groove-v1.0.0-midionly.zip','sha256':'651cbc524ffb891be1a3e46d89dc82a1cecb09a57c748c7b45b844c4841dcc1e','evidence':'direct captured drummer MIDI'},
+            'ASAP':{'commit':rev('/tmp/asap'),'evidence':'real score-aligned piano performance MIDI'},
+            'GuitarSet':{'record':'Zenodo 3371780','annotation_md5':'b39b78e63d3446f2e54ddb7a54df9b10','evidence':'real guitar note+beat annotations'},
+            'IDMT_Bass':{'record':'Zenodo 7544099','archive_md5':'c85540c664e8b13badd86880bacf11fa','evidence':'real bass note/articulation annotations'},
+            'URMP':{'mimut_snapshot':'bb320faf307f5d24aeced0e60f9445ff0abce205','downloaded':'symbolic/note annotations only','evidence':'separately recorded coordinated chamber performances'},
+            'RWC':{'commit':rev('/tmp/rwc'),'evidence':'professional aligned MIDI + beat annotations; proxy tier'},
+            'POP909':{'commit':rev('/tmp/pop909'),'use':'structural advisory only'},
+            'International_e_piano':{'commit':rev('/tmp/epiano-repo'),'use':'advisory only; underlying MIDI rights unclear'},
+          }
+          (p/'source_provenance_v4.json').write_text(json.dumps(prov,indent=2,sort_keys=True)+'\n')
+          PY
+          (
+            cd "$OUT"
+            find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+            sha256sum --check SHA256SUMS
+          )
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/analyze_additional_expression_sources.py "$OUT" tools/humanization/validation_multifamily_v4.json
+          if git diff --cached --quiet; then
+            echo 'No output changes.'
+            exit 0
+          fi
+          git commit -m 'data: finalize multifamily empirical humanization calibration v4 [skip ci]'
+          git fetch origin data/empirical-humanization-calibration-20260828
+          git rebase origin/data/empirical-humanization-calibration-20260828
+          git push origin HEAD:data/empirical-humanization-calibration-20260828
