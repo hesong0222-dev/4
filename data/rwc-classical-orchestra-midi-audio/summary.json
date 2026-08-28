@@ -1,0 +1,32 @@
+{
+  "source": "RWC Music Database: Classical Music / SyncRWC",
+  "source_catalog_url": "https://staff.aist.go.jp/m.goto/RWC-MDB/rwc-mdb-c.html",
+  "alignment_url": "https://staff.aist.go.jp/m.goto/RWC-MDB/AIST-Annotation/SyncRWC/",
+  "classical_database_midi_audio_pairs": 61,
+  "enumerated_orchestral_pairs": 10,
+  "category_counts": {
+    "Symphony": 4,
+    "Concerto": 2,
+    "Orchestral": 4
+  },
+  "performer": "Tokyo City Philharmonic Orchestra",
+  "score_representation": "reference MIDI",
+  "alignment_outputs": [
+    "warping path",
+    "synchronized MIDI-event CSV",
+    "warped MIDI",
+    "first-60-second sonifications"
+  ],
+  "alignment_method": "automatic MIDI-audio synchronization; no manual postprocessing or parameter tuning",
+  "match_class": "human_orchestra_midi_audio_automatically_aligned",
+  "human_performance": true,
+  "exact_printed_edition_claim": false,
+  "known_limitation": "The source warns that the synchronization is not ground truth and may contain errors, especially near file boundaries.",
+  "access": "Only authorized RWC database users may obtain the full files.",
+  "redistribution": "Unauthorized reuse, reproduction and redistribution are prohibited.",
+  "validation": {
+    "passed": true,
+    "unique_piece_numbers": 10,
+    "all_have_alignment_metadata": true
+  }
+}
