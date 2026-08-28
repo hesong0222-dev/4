@@ -1,0 +1,46 @@
+{
+  "generated_at_unix": 1787849205,
+  "elapsed_seconds": 344.669,
+  "PDMX.csv": {
+    "path": ".cache/pdmx-pairs/PDMX.csv",
+    "size": 225399738,
+    "md5": "30392ccf38bb63ce70e7afae70f9c88c",
+    "sha256": "fc2187e7e09185f4b28be57b6478a96a1243a037f8fd13624f17de2d8bfd44bd"
+  },
+  "hf_projection": {
+    "path": "out/hf_audio_index.csv",
+    "size": 6973730,
+    "md5": "d5f0b9525680176f467efac12707837b",
+    "sha256": "6df5af0c637785a8f0cf88a2bece326935927449e4a7ae48c746d0eb27ad1681"
+  },
+  "hf": {
+    "parquet_file_count": 59,
+    "row_count": 24390,
+    "schema": [
+      {
+        "column_name": "audio",
+        "column_type": "STRUCT(bytes BLOB, path VARCHAR)",
+        "null": "YES",
+        "key": null,
+        "default": null,
+        "extra": null
+      },
+      {
+        "column_name": "caption",
+        "column_type": "VARCHAR",
+        "null": "YES",
+        "key": null,
+        "default": null,
+        "extra": null
+      },
+      {
+        "column_name": "filename",
+        "column_type": "VARCHAR",
+        "null": "YES",
+        "key": null,
+        "default": null,
+        "extra": null
+      }
+    ]
+  }
+}

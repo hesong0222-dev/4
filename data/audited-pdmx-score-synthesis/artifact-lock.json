@@ -1,0 +1,12 @@
+{
+  "artifact_id": 9655970352,
+  "workflow_run_id": 33094472148,
+  "artifact_name": "pdmx-exact-pair-manifest",
+  "artifact_sha256": "986b5333074c29a5cc45a4a91e12f367ce338d014937926420f2c8adcf438dae",
+  "expected_files": {
+    "all_mapped_score_audio_pairs.csv": 24390,
+    "eligible_exact_pairs.csv": 17599,
+    "top_10000_exact_pairs.csv": 10000,
+    "hf_audio_index.csv": 24390
+  }
+}
