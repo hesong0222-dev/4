@@ -1,0 +1,96 @@
+name: Build PDMX per-record instrumentation once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/build_pdmx_record_instrument_manifest.py
+      - pdmx-record-manifest-trigger.txt
+      - .github/workflows/build-pdmx-record-manifest.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pdmx-record-manifest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Local-style synthetic validation
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/build_pdmx_record_instrument_manifest.py
+          rm -rf /tmp/pdmx-manifest-test
+          cat > /tmp/pdmx-test.csv <<'CSV'
+          path,tracks,n_tracks,mxl,pdf,mid,subset:no_license_conflict,subset:all_valid,subset:deduplicated,title,song_name,composer_name,genres,license,license_url
+          ./data/a.json,40-40-41-42,4,./mxl/a.mxl,./pdf/a.pdf,./mid/a.mid,True,True,True,String Quartet,String Quartet,X,classical,cc0,u
+          ./data/b.json,40-40-41-42-43-73-73-68-68-70-70-71-71-56-56-57-57-58-60-60-47,21,./mxl/b.mxl,./pdf/b.pdf,./mid/b.mid,True,True,True,Symphony Orchestra,Symphony Orchestra,Y,classical,cc0,u
+          ./data/c.json,0,1,./mxl/c.mxl,./pdf/c.pdf,./mid/c.mid,False,True,True,Excluded,Excluded,Z,,cc0,u
+          CSV
+          sed -i 's/^          //' /tmp/pdmx-test.csv
+          python3 scripts/build_pdmx_record_instrument_manifest.py \
+            --input /tmp/pdmx-test.csv --output /tmp/pdmx-manifest-test \
+            --min-records 2 --shard-size 1 >/tmp/pdmx-test-result.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          s=json.loads(Path('/tmp/pdmx-manifest-test/summary.json').read_text())
+          assert s['records'] == 2
+          assert s['unique_record_ids'] == 2
+          assert s['validation']['passed'] is True
+          assert s['ensemble_counts']['chamber.string_quartet'] == 1
+          assert s['ensemble_counts']['orchestra.full.symphonic'] == 1
+          PY
+
+      - name: Download and verify pinned PDMX v9 metadata
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/pdmx-v9
+          curl --fail --location --retry 6 --retry-all-errors \
+            --output /tmp/pdmx-v9/PDMX.csv \
+            'https://zenodo.org/records/15571083/files/PDMX.csv?download=1'
+          printf '%s  %s\n' \
+            '30392ccf38bb63ce70e7afae70f9c88c' '/tmp/pdmx-v9/PDMX.csv' | md5sum --check -
+
+      - name: Build and validate full strict manifest
+        run: |
+          set -euo pipefail
+          OUT='data/pdmx-v9-record-instrument-manifest'
+          rm -rf "$OUT"
+          python3 scripts/build_pdmx_record_instrument_manifest.py \
+            --input /tmp/pdmx-v9/PDMX.csv --output "$OUT" \
+            --min-records 10000 --shard-size 20000
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          s=json.loads(Path('data/pdmx-v9-record-instrument-manifest/summary.json').read_text())
+          assert s['validation']['passed'] is True
+          assert s['records'] == s['unique_record_ids']
+          assert s['records'] >= 10000
+          print('accepted_records=', s['records'])
+          print('record_instrument_rows=', s['record_instrument_rows'])
+          print('ensemble_counts=', s['ensemble_counts'])
+          PY
+
+      - name: Commit generated manifest once
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/pdmx-v9-record-instrument-manifest
+          if git diff --cached --quiet; then
+            echo 'Manifest is already current.'
+            exit 0
+          fi
+          git commit -m 'data: add PDMX v9 per-record instrumentation manifest [skip ci]'
+          git push
