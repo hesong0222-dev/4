@@ -189,7 +189,7 @@ def chord_spreads(notes,tol=.003):
     return out
 
 def generic_performance_stats(root,name):
-    root=Path(root); mids=list(root.rglob('*.mid'))+list(root.rglob('*.midi')); velocities=[]; gates=[]; spreads=[]; densities=[]; fastmax=[]; pedal=0; files=0; notes_total=0
+    root=Path(root); mids=[p for p in root.rglob('*') if p.is_file() and p.suffix.lower() in {'.mid','.midi'}]; velocities=[]; gates=[]; spreads=[]; densities=[]; fastmax=[]; pedal=0; files=0; notes_total=0
     for p in mids:
         try:m=parse_midi(p)
         except Exception:continue
