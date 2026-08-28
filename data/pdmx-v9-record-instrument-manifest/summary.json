@@ -1,0 +1,43 @@
+{
+  "source": "PDMX v9 / Zenodo 15571083",
+  "input_sha256": "fc2187e7e09185f4b28be57b6478a96a1243a037f8fd13624f17de2d8bfd44bd",
+  "filter": "no_license_conflict AND all_valid AND deduplicated",
+  "records": 77321,
+  "unique_record_ids": 77321,
+  "record_instrument_rows": 142342,
+  "record_shards": 4,
+  "instrument_shards": 3,
+  "ensemble_counts": {
+    "solo.piano": 36535,
+    "ensemble.mixed_or_unclassified": 27450,
+    "choir.vocal_ensemble": 5917,
+    "orchestra.chamber": 1661,
+    "orchestra.string": 941,
+    "voice.piano": 924,
+    "orchestra.full.symphonic": 774,
+    "solo.guitar": 744,
+    "band.pop_rock_candidate": 731,
+    "wind.concert_band_candidate": 676,
+    "brass_band_candidate": 334,
+    "chamber.string_quartet": 289,
+    "jazz.combo_candidate": 173,
+    "electronic.synth_ensemble": 168,
+    "jazz.big_band_candidate": 4
+  },
+  "confidence_counts": {
+    "high": 37836,
+    "low": 33677,
+    "medium": 5808
+  },
+  "validation": {
+    "minimum_records": 10000,
+    "minimum_passed": true,
+    "unique_ids": true,
+    "passed": true
+  },
+  "limitations": [
+    "GM program list is track-level evidence, not exact printed staff names.",
+    "PDMX CSV does not prove MIDI channel-10 drum-kit presence.",
+    "Bb/C trumpet, divisi, instrument doubling and articulations require direct score parsing."
+  ]
+}

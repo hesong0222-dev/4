@@ -1,0 +1,16 @@
+ensemble_primary,records,record_fraction
+solo.piano,36535,0.47251070
+ensemble.mixed_or_unclassified,27450,0.35501352
+choir.vocal_ensemble,5917,0.07652514
+orchestra.chamber,1661,0.02148187
+orchestra.string,941,0.01217004
+voice.piano,924,0.01195018
+orchestra.full.symphonic,774,0.01001022
+solo.guitar,744,0.00962222
+band.pop_rock_candidate,731,0.00945409
+wind.concert_band_candidate,676,0.00874277
+brass_band_candidate,334,0.00431965
+chamber.string_quartet,289,0.00373767
+jazz.combo_candidate,173,0.00223743
+electronic.synth_ensemble,168,0.00217276
+jazz.big_band_candidate,4,0.00005173
