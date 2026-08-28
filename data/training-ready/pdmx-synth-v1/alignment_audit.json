@@ -1,0 +1,18 @@
+{
+  "status": "PASS_FOR_SYNTH_RENDERED_MIDI_ONLY",
+  "grade": "SYNTH_RENDERED_MIDI",
+  "exact_pairs": 17599,
+  "alignment_method": "same-source MIDI to synthesis; exact by construction",
+  "real_score_aligned_gate": {
+    "status": "BLOCKED_NOT_PRESENT_IN_THIS_CORPUS",
+    "requirements": [
+      "lock work/performance identity before alignment",
+      "coarse chroma/beat agreement",
+      "onset-aware monotonic DTW",
+      "key/repeat/cut/duration consistency",
+      "manual spot review and failure log",
+      "never choose MIDI candidate by best evaluation-audio alignment score"
+    ]
+  },
+  "model_pseudo_label_policy": "QUARANTINE_NOT_SUPERVISED"
+}

@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "work_clusters": 13129,
+  "work_cluster_cross_split_leaks": 0,
+  "arrangement_cluster_cross_split_leaks": 0,
+  "audio_variant_cluster_cross_split_leaks": 0,
+  "method": "title+original-creator metadata cluster; arrangement=PDMX source record",
+  "limitations": [
+    "Metadata clustering cannot guarantee detection of renamed covers/masters. Union with audio/chroma fingerprint clusters before freezing real-audio evaluation.",
+    "Future renders from the same PDMX arrangement must inherit this split."
+  ]
+}

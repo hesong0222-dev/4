@@ -1,0 +1,22 @@
+{
+  "grades": {
+    "REAL_CAPTURED_MIDI": {
+      "supervised": true,
+      "gate": "synchronous capture provenance"
+    },
+    "REAL_SCORE_ALIGNED": {
+      "supervised": true,
+      "gate": "real alignment PASS"
+    },
+    "SYNTH_RENDERED_MIDI": {
+      "supervised": true,
+      "gate": "exact source MIDI render provenance"
+    },
+    "MODEL_PSEUDO_LABEL": {
+      "supervised": false,
+      "gate": "quarantine only"
+    }
+  },
+  "current_corpus_grade": "SYNTH_RENDERED_MIDI",
+  "pseudo_label_rows": 0
+}

@@ -1,0 +1,36 @@
+{
+  "status": "TRAINING_READY_SYNTHETIC",
+  "input_exact_pairs": 17599,
+  "joined_exact_pairs": 17599,
+  "label_grade_counts": {
+    "SYNTH_RENDERED_MIDI": 17599
+  },
+  "pseudo_labels_in_supervised_manifest": 0,
+  "work_clusters": 13129,
+  "split_row_counts": {
+    "train": 13410,
+    "sealed_test": 167,
+    "human_review_queue": 544,
+    "strict_dev": 117,
+    "rare_challenge": 3361
+  },
+  "strict_eval_representatives": {
+    "dev": 100,
+    "sealed_test": 150,
+    "rare_challenge": 50
+  },
+  "human_review_queue": 500,
+  "human_verified_post_training_rows": 0,
+  "cluster_sibling_holdouts": 3389,
+  "real_captured_or_real_score_aligned_eval_rows": 0,
+  "real_eval_status": "BLOCKED_UNTIL_REAL_CAPTURED_OR_ALIGNMENT_GATED_DATA_IS_MATERIALIZED",
+  "training_ready_scope": "audited PDMX score-derived synthesized audio only",
+  "validation": {
+    "exact_count": true,
+    "pseudo_labels_excluded": true,
+    "all_alignment_pass": true,
+    "cluster_leakage_zero": true,
+    "strict_eval_requested": true,
+    "human_review_queue_requested": true
+  }
+}

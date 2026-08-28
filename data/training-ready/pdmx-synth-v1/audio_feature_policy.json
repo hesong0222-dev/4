@@ -1,0 +1,11 @@
+{
+  "audio_storage": "keep compressed upstream audio; no corpus-wide PCM expansion",
+  "segment_seconds": 5.0,
+  "decode": "on demand",
+  "target_channels": 1,
+  "target_sample_rate_hz": 16000,
+  "stft_mel": "on-the-fly only",
+  "full_mel_cache": "forbidden",
+  "cache": "bounded local segment/feature cache",
+  "sharding": "compressed song/manifest shards"
+}
