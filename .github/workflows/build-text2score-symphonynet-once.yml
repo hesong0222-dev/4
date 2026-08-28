@@ -18,7 +18,7 @@ concurrency:
 jobs:
   enumerate:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 45
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -30,12 +30,11 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m py_compile \
-            scripts/build_text2score_symphonynet_manifest.py \
+            scripts/build_text2score_symphonynet_manifest_fast.py \
             scripts/build_openscore_orchestra_manifest.py \
-            tests/test_text2score_symphonynet_manifest.py \
+            tests/test_text2score_symphonynet_manifest_fast.py \
             tests/test_openscore_orchestra_manifest.py
-          python3 -m unittest discover \
-            -s tests -p 'test_text2score_symphonynet_manifest.py' -v
+          python3 tests/test_text2score_symphonynet_manifest_fast.py
           python3 -m unittest discover \
             -s tests -p 'test_openscore_orchestra_manifest.py' -v
 
@@ -66,7 +65,6 @@ jobs:
           test -s "$SCORE_ARCHIVE"
           echo "score_archive=$SCORE_ARCHIVE" >> "$GITHUB_OUTPUT"
           ls -lh "$SCORE_ARCHIVE"
-          df -h /tmp
 
       - name: Download the official SymphonyNet MIDI archive when accessible
         id: symphonynet
@@ -78,13 +76,10 @@ jobs:
             'https://drive.google.com/file/d/1j9Pvtzaq8k_QIPs8e2ikvCR-BusPluTb/view?usp=sharing' \
             --output "$MIDI_ARCHIVE" && test -s "$MIDI_ARCHIVE"; then
             echo "midi_archive=$MIDI_ARCHIVE" >> "$GITHUB_OUTPUT"
-            echo 'midi_downloaded=true' >> "$GITHUB_OUTPUT"
             ls -lh "$MIDI_ARCHIVE"
           else
             rm -f "$MIDI_ARCHIVE"
             echo 'midi_archive=' >> "$GITHUB_OUTPUT"
-            echo 'midi_downloaded=false' >> "$GITHUB_OUTPUT"
-            echo 'Original MIDI archive was unavailable; the ABC inventory will still be built.'
           fi
 
       - name: Fetch the pinned OpenScore Orchestra corpus
@@ -109,11 +104,11 @@ jobs:
           if [[ -n "${MIDI_ARCHIVE:-}" && -s "$MIDI_ARCHIVE" ]]; then
             MIDI_ARGS=(--midi-archive "$MIDI_ARCHIVE")
           fi
-          python3 scripts/build_text2score_symphonynet_manifest.py \
+          python3 scripts/build_text2score_symphonynet_manifest_fast.py \
             --score-archive "$SCORE_ARCHIVE" \
             "${MIDI_ARGS[@]}" \
             --output "$SYM_OUT" \
-            --minimum 1 \
+            --minimum 40000 \
             --shard-size 10000
           python3 scripts/build_openscore_orchestra_manifest.py \
             --source-root /tmp/Hauptstimme \
@@ -130,11 +125,11 @@ jobs:
           pdmx = load('data/pdmx-v9-all-orchestra-score-midi/summary.json')
           mutopia = load('data/mutopia-orchestra-score-midi/summary.json')
           openscore = load('data/openscore-orchestra-score-midi/summary.json')
-
           assert sym['validation']['passed'] is True
           assert sym['validation']['unique_record_ids'] is True
-          assert sym['validation']['unique_score_member_paths'] is True
-          assert sym['enumerated_score_records'] > 0
+          assert sym['validation']['unique_member_paths'] is True
+          assert sym['validation']['within_declared_count_tolerance'] is True
+          assert sym['enumerated_score_records'] >= 40000
           assert openscore['validation']['passed'] is True
           assert openscore['enumerated_primary_full_scores'] >= 90
           assert mutopia['validation']['passed'] is True
@@ -217,25 +212,19 @@ jobs:
           (cd "$OPEN_OUT" && sha256sum --check SHA256SUMS)
           (
             cd data/orchestra-score-midi-catalog
-            find . -type f ! -name SHA256SUMS -print0 \
-              | sort -z | xargs -0 sha256sum > SHA256SUMS
+            find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
             sha256sum --check SHA256SUMS
           )
           {
             echo '## Text2Score / SymphonyNet enumeration'
-            echo
             echo '```json'
             cat "$SYM_OUT/summary.json"
             echo '```'
-            echo
             echo '## OpenScore Orchestra enumeration'
-            echo
             echo '```json'
             cat "$OPEN_OUT/summary.json"
             echo '```'
-            echo
             echo '## Combined registry'
-            echo
             echo '```json'
             cat data/orchestra-score-midi-catalog/summary.json
             echo '```'
@@ -247,10 +236,7 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add \
-            data/text2score-symphonynet-score-midi \
-            data/openscore-orchestra-score-midi \
-            data/orchestra-score-midi-catalog
+          git add data/text2score-symphonynet-score-midi data/openscore-orchestra-score-midi data/orchestra-score-midi-catalog
           if git diff --cached --quiet; then
             echo 'Generated manifests are unchanged.'
             exit 0
