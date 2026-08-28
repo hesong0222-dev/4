@@ -1,4 +1,4 @@
-name: Enumerate Text2Score SymphonyNet score-MIDI tier once
+name: Enumerate orchestra score-MIDI corpora once
 
 on:
   push:
@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: text2score-symphonynet-${{ github.ref }}
+  group: orchestra-score-midi-enumeration-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -23,17 +23,21 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
-      - name: Validate the enumerator locally first
+      - name: Validate enumerators locally first
         shell: bash
         run: |
           set -euo pipefail
           python3 -m py_compile \
             scripts/build_text2score_symphonynet_manifest.py \
-            tests/test_text2score_symphonynet_manifest.py
+            scripts/build_openscore_orchestra_manifest.py \
+            tests/test_text2score_symphonynet_manifest.py \
+            tests/test_openscore_orchestra_manifest.py
           python3 -m unittest discover \
             -s tests -p 'test_text2score_symphonynet_manifest.py' -v
+          python3 -m unittest discover \
+            -s tests -p 'test_openscore_orchestra_manifest.py' -v
 
       - name: Install bounded download helpers
         shell: bash
@@ -83,6 +87,14 @@ jobs:
             echo 'Original MIDI archive was unavailable; the ABC inventory will still be built.'
           fi
 
+      - name: Fetch the pinned OpenScore Orchestra corpus
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch v4.7.3 \
+            https://github.com/MarkGotham/Hauptstimme.git \
+            /tmp/Hauptstimme
+
       - name: Enumerate, hash, deduplicate and verify source records
         shell: bash
         env:
@@ -90,8 +102,9 @@ jobs:
           MIDI_ARCHIVE: ${{ steps.symphonynet.outputs.midi_archive }}
         run: |
           set -euo pipefail
-          OUT='data/text2score-symphonynet-score-midi'
-          rm -rf "$OUT"
+          SYM_OUT='data/text2score-symphonynet-score-midi'
+          OPEN_OUT='data/openscore-orchestra-score-midi'
+          rm -rf "$SYM_OUT" "$OPEN_OUT" data/orchestra-score-midi-catalog
           MIDI_ARGS=()
           if [[ -n "${MIDI_ARCHIVE:-}" && -s "$MIDI_ARCHIVE" ]]; then
             MIDI_ARGS=(--midi-archive "$MIDI_ARCHIVE")
@@ -99,38 +112,63 @@ jobs:
           python3 scripts/build_text2score_symphonynet_manifest.py \
             --score-archive "$SCORE_ARCHIVE" \
             "${MIDI_ARGS[@]}" \
-            --output "$OUT" \
+            --output "$SYM_OUT" \
             --minimum 1 \
             --shard-size 10000
+          python3 scripts/build_openscore_orchestra_manifest.py \
+            --source-root /tmp/Hauptstimme \
+            --output "$OPEN_OUT" \
+            --minimum 90
           python3 - <<'PY'
           import json
           from pathlib import Path
 
-          sym_path = Path('data/text2score-symphonynet-score-midi/summary.json')
-          sym = json.loads(sym_path.read_text(encoding='utf-8'))
+          def load(path: str) -> dict:
+              return json.loads(Path(path).read_text(encoding='utf-8'))
+
+          sym = load('data/text2score-symphonynet-score-midi/summary.json')
+          pdmx = load('data/pdmx-v9-all-orchestra-score-midi/summary.json')
+          mutopia = load('data/mutopia-orchestra-score-midi/summary.json')
+          openscore = load('data/openscore-orchestra-score-midi/summary.json')
+
           assert sym['validation']['passed'] is True
           assert sym['validation']['unique_record_ids'] is True
           assert sym['validation']['unique_score_member_paths'] is True
           assert sym['enumerated_score_records'] > 0
+          assert openscore['validation']['passed'] is True
+          assert openscore['enumerated_primary_full_scores'] >= 90
+          assert mutopia['validation']['passed'] is True
+          assert mutopia['enumerated_records'] == 67
 
-          pdmx_path = Path('data/pdmx-v9-all-orchestra-score-midi/summary.json')
-          pdmx = json.loads(pdmx_path.read_text(encoding='utf-8'))
           pdmx_canonical = int(pdmx['canonical_deduplicated_records'])
           sym_canonical = int(sym['canonical_unique_score_hashes'])
+          mutopia_records = int(mutopia['enumerated_records'])
+          openscore_records = int(openscore['enumerated_primary_full_scores'])
+          total = pdmx_canonical + sym_canonical + mutopia_records + openscore_records
           combined = {
               'catalog': 'Orchestra score–MIDI source registry',
               'requested_target': 10000,
-              'target_reached': pdmx_canonical + sym_canonical >= 10000,
-              'canonical_source_records_total': pdmx_canonical + sym_canonical,
+              'target_reached': total >= 10000,
+              'canonical_source_records_total': total,
               'cross_source_musical_work_deduplication_performed': False,
-              'tiers': {
-                  'same_source_encoded_score_exports': {
-                      'source': 'PDMX v9',
+              'sources': {
+                  'pdmx_v9': {
+                      'tier': 'same_source_encoded_score_exports',
                       'records': pdmx_canonical,
                       'claim': 'MXL, PDF and MIDI are exports associated with the same PDMX score record',
                   },
-                  'midi_derived_renderable_scores': {
-                      'source': 'Text2Score SymphonyNet subset',
+                  'mutopia_orchestra': {
+                      'tier': 'same_source_encoded_score_exports',
+                      'records': mutopia_records,
+                      'claim': 'LilyPond source, PDF and MIDI are published from the same Mutopia edition',
+                  },
+                  'openscore_orchestra': {
+                      'tier': 'encoded_full_score_deterministic_midi_export',
+                      'records': openscore_records,
+                      'claim': 'MIDI is deterministically exportable from the exact pinned MSCZ/MXL full score',
+                  },
+                  'text2score_symphonynet': {
+                      'tier': 'midi_derived_renderable_scores',
                       'records': sym_canonical,
                       'claim': 'Quantized MIDI-derived ABC score; deterministically exportable to MusicXML, MIDI and PDF',
                   },
@@ -143,6 +181,8 @@ jobs:
               ],
               'source_summaries': {
                   'pdmx': '../pdmx-v9-all-orchestra-score-midi/summary.json',
+                  'mutopia': '../mutopia-orchestra-score-midi/summary.json',
+                  'openscore_orchestra': '../openscore-orchestra-score-midi/summary.json',
                   'text2score_symphonynet': '../text2score-symphonynet-score-midi/summary.json',
               },
           }
@@ -155,24 +195,26 @@ jobs:
           (root / 'source_counts.csv').write_text(
               'tier,source,canonical_records\n'
               f"same_source_encoded_score_exports,PDMX v9,{pdmx_canonical}\n"
+              f"same_source_encoded_score_exports,Mutopia Orchestra,{mutopia_records}\n"
+              f"encoded_full_score_deterministic_midi_export,OpenScore Orchestra,{openscore_records}\n"
               f"midi_derived_renderable_scores,Text2Score SymphonyNet subset,{sym_canonical}\n",
               encoding='utf-8',
           )
           (root / 'README.md').write_text(
               '# Combined orchestra score–MIDI source registry\n\n'
               f'- PDMX canonical same-source records: **{pdmx_canonical:,}**\n'
+              f'- Mutopia same-edition score–MIDI records: **{mutopia_records:,}**\n'
+              f'- OpenScore encoded full scores with deterministic MIDI export: **{openscore_records:,}**\n'
               f'- Text2Score/SymphonyNet unique MIDI-derived ABC scores: **{sym_canonical:,}**\n'
-              f'- source-record total: **{pdmx_canonical + sym_canonical:,}**\n'
+              f'- source-record total: **{total:,}**\n'
               f'- 10,000 target reached: **{combined["target_reached"]}**\n\n'
-              'The total combines two different provenance tiers and is not a cross-source unique-work count.\n',
+              'The total combines different provenance tiers and is not a cross-source unique-work count.\n',
               encoding='utf-8',
           )
           print(json.dumps(combined, ensure_ascii=False, indent=2, sort_keys=True))
           PY
-          (
-            cd "$OUT"
-            sha256sum --check SHA256SUMS
-          )
+          (cd "$SYM_OUT" && sha256sum --check SHA256SUMS)
+          (cd "$OPEN_OUT" && sha256sum --check SHA256SUMS)
           (
             cd data/orchestra-score-midi-catalog
             find . -type f ! -name SHA256SUMS -print0 \
@@ -183,7 +225,13 @@ jobs:
             echo '## Text2Score / SymphonyNet enumeration'
             echo
             echo '```json'
-            cat "$OUT/summary.json"
+            cat "$SYM_OUT/summary.json"
+            echo '```'
+            echo
+            echo '## OpenScore Orchestra enumeration'
+            echo
+            echo '```json'
+            cat "$OPEN_OUT/summary.json"
             echo '```'
             echo
             echo '## Combined registry'
@@ -201,10 +249,12 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add \
             data/text2score-symphonynet-score-midi \
+            data/openscore-orchestra-score-midi \
             data/orchestra-score-midi-catalog
           if git diff --cached --quiet; then
             echo 'Generated manifests are unchanged.'
             exit 0
           fi
-          git commit -m 'data: add SymphonyNet MIDI-derived score inventory [skip ci]'
-          git push
+          git commit -m 'data: add SymphonyNet and OpenScore orchestra inventories [skip ci]'
+          git pull --rebase origin main
+          git push origin HEAD:main
