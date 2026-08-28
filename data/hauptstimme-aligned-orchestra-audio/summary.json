@@ -1,0 +1,165 @@
+{
+  "accepted_aligned_audio_score_pairs": 166,
+  "audio_metadata_rows": 311,
+  "audio_redistributed": false,
+  "claim": "A score-audio temporal alignment table exists for each accepted pair.",
+  "human_performance": true,
+  "manifest_sha256": "25a8b898d2fed550abb81acd966aad07a50ac5f418927163ad5a564f3146dc91",
+  "match_class": "human_performance_note_onset_aligned_strong_match",
+  "not_claimed": [
+    "the performers used the exact encoded source edition",
+    "note-perfect performance without omissions or interpretive changes",
+    "permission to mirror the linked audio file"
+  ],
+  "recording_year_counts": {
+    "1929": 2,
+    "1936": 1,
+    "1937": 2,
+    "1941": 2,
+    "1943": 2,
+    "1945": 1,
+    "1947": 3,
+    "1948": 1,
+    "1949": 2,
+    "1950": 5,
+    "1952": 4,
+    "1953": 3,
+    "1954": 1,
+    "1955": 13,
+    "1956": 13,
+    "1957": 5,
+    "1958": 8,
+    "1959": 17,
+    "1960": 5,
+    "1961": 29,
+    "1962": 13,
+    "1963": 8,
+    "1964": 8,
+    "2012": 13,
+    "2019": 3,
+    "unknown": 2
+  },
+  "rejection_counts": {
+    "alignment_column_missing_audio_metadata": 1,
+    "audio_metadata_has_no_alignment_column": 55,
+    "duplicate_imslp_number_within_score": 2,
+    "score_has_no_alignment_table": 88
+  },
+  "score_metadata_rows": 94,
+  "scores_with_at_least_one_aligned_audio": 38,
+  "source": "Hauptstimme / OpenScore Orchestra aligned IMSLP audio",
+  "source_repository": "MarkGotham/Hauptstimme",
+  "source_tag": "v4.7.3",
+  "source_url": "https://github.com/MarkGotham/Hauptstimme/tree/v4.7.3",
+  "top_performer_strings": [
+    [
+      "Orchestre de la Suisse Romande, Ernest Ansermet",
+      17
+    ],
+    [
+      "Royal Philharmonic Orchestra, René Leibowitz",
+      15
+    ],
+    [
+      "Czech National Symphony Orchestra",
+      13
+    ],
+    [
+      "Pittsburgh Symphony Orchestra, William Steinberg",
+      9
+    ],
+    [
+      "London Symphony Orchestra, Josef Krips",
+      8
+    ],
+    [
+      "Columbia Symphony Orchestra, Bruno Walter",
+      8
+    ],
+    [
+      "Philharmonia Orchestra, Otto Klemperer",
+      8
+    ],
+    [
+      "New York Philharmonic, Bruno Walter",
+      8
+    ],
+    [
+      "Wiener Philharmoniker, Pierre Monteux",
+      5
+    ],
+    [
+      "Philadelphia Orchestra, Eugene Ormandy",
+      5
+    ],
+    [
+      "Detroit Symphony Orchestra, Paul Paray",
+      4
+    ],
+    [
+      "Berliner Philharmoniker, Herbert von Karajan",
+      4
+    ],
+    [
+      "Wiener Symphoniker, Otto Klemperer",
+      4
+    ],
+    [
+      "United States Marine Band",
+      3
+    ],
+    [
+      "Wiener Symphoniker, Hermann Scherchen",
+      3
+    ],
+    [
+      "London Philharmonic, Adrian Boult",
+      3
+    ],
+    [
+      "Boston Symphony Orchestra, Charles Munch",
+      3
+    ],
+    [
+      "Boston Symphony Orchestra, Serge Koussevitzky",
+      3
+    ],
+    [
+      "Inge Borkh, Ruth Siewert, Richard Lewis, Ludwig Weber, Beecham Choral Society, Royal Philharmonic Orchestra, René Leibowitz",
+      3
+    ],
+    [
+      "Otto Klemperer, Royal Concertgebouw Orchestra, Amsterdam Toonkunsktkoor, Gré Brouwenstijn, Annie Hermes, Ernst Haefliger, Hans Wilbrink",
+      3
+    ],
+    [
+      "Bayreuth Festival Orchestra, Bayreuth Festival Chorus, Wilhelm Furtwängler, Elisabeth Schwarzkopf, Elisabeth Höngen, Hans Hopf, Otto Edelmann",
+      3
+    ],
+    [
+      "Advent Chamber Orchestra",
+      2
+    ],
+    [
+      "Symphony of the Air, Igor Markevitch",
+      2
+    ],
+    [
+      "Berliner Philharmoniker, Eugen Jochum",
+      2
+    ],
+    [
+      "Berliner Philharmoniker, Hans Pfitzner",
+      2
+    ]
+  ],
+  "unique_match_ids": 166,
+  "unique_performer_strings": 44,
+  "unique_score_imslp_pairs": 166,
+  "validation": {
+    "all_have_alignment_columns": true,
+    "all_have_audio_urls": true,
+    "all_have_score_files": true,
+    "passed": true
+  }
+}
