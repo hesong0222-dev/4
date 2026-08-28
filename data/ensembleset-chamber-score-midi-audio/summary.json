@@ -1,0 +1,37 @@
+{
+  "access": "restricted; academic-use request and RWC pledge apply to the multitracks+MIDI version",
+  "claim": "Each record was rendered from a MIDI or MusicXML ensemble score with BBC Symphony Orchestra samples; the restricted version includes articulation/key-switch MIDI.",
+  "declared_total_piece_duration": "6:09:19",
+  "declared_unique_instrument_track_duration": "498:33:20",
+  "doi": "10.5281/zenodo.7327175",
+  "enumerated_records": 80,
+  "license_label_counts": {
+    "CCA-SA-3.0": 41,
+    "Public": 29,
+    "RWC-NAIST-jp": 9,
+    "unknown": 1
+  },
+  "manifest_sha256": "19197083a1fa977af04576695027de9a9e09da65e9eb6adbae82ca5f254d1998",
+  "metadata_title": "EnsembleSet",
+  "not_claimed": [
+    "human performance",
+    "independently verified printable conductor score for every item",
+    "cross-source unique composition identity",
+    "permission to redistribute restricted binaries"
+  ],
+  "pair_class": "symbolic_chamber_ensemble_score_midi_synthetic_multitrack_audio",
+  "records_with_identified_source_rights": 79,
+  "records_with_unknown_source_or_rights": 1,
+  "source": "EnsembleSet 1.0.0-multitracks+midi",
+  "source_code_counts": {
+    "MTP_MID": 41,
+    "MTP_XML": 30,
+    "RWC_MID": 9
+  },
+  "unique_file_names": 80,
+  "unique_record_ids": 80,
+  "validation": {
+    "metadata_rows_enumerated": 80,
+    "passed": true
+  }
+}
