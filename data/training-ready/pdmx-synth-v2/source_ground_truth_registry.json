@@ -1,0 +1,153 @@
+{
+  "status": "PASS",
+  "rendering_hold": true,
+  "model_pseudo_label_supervised": false,
+  "sources": [
+    {
+      "source_id": "PDMX_SYNTH",
+      "source_name": "PDMX audited score-synthesis",
+      "label_grade": "SYNTH_RENDERED_MIDI",
+      "reported_or_enumerated_rows": 17599,
+      "status": "READY",
+      "supervised_audio_to_midi_eligible": 1,
+      "real_evaluation_eligible_now": 0,
+      "new_audio_rendering_allowed": 0,
+      "summary_path": "data/audited-pdmx-score-synthesis/summary.json",
+      "notes": "same-source MIDI rendered upstream; no new rendering performed"
+    },
+    {
+      "source_id": "SYNTHSOD",
+      "source_name": "SynthSOD aligned scores",
+      "label_grade": "SYNTH_RENDERED_MIDI",
+      "reported_or_enumerated_rows": 484,
+      "status": "SOURCE_VERIFIED_NOT_MATERIALIZED",
+      "supervised_audio_to_midi_eligible": 0,
+      "real_evaluation_eligible_now": 0,
+      "new_audio_rendering_allowed": 0,
+      "summary_path": "data/synthsod-aligned-score-audio/summary.json",
+      "notes": "MIDI-derived note scores aligned to existing synthetic audio"
+    },
+    {
+      "source_id": "ENSEMBLESET",
+      "source_name": "EnsembleSet",
+      "label_grade": "SYNTH_RENDERED_MIDI",
+      "reported_or_enumerated_rows": 80,
+      "status": "BLOCKED_RESTRICTED_ACCESS",
+      "supervised_audio_to_midi_eligible": 0,
+      "real_evaluation_eligible_now": 0,
+      "new_audio_rendering_allowed": 0,
+      "summary_path": "data/ensembleset-chamber-score-midi-audio/summary.json",
+      "notes": "synthetic multitracks from MIDI/MusicXML; academic/RWC access boundary"
+    },
+    {
+      "source_id": "BSED_REAL",
+      "source_name": "BSED real performances",
+      "label_grade": "REAL_SCORE_ALIGNED",
+      "reported_or_enumerated_rows": 80,
+      "status": "SOURCE_ALIGNMENT_STRONG_NOT_MATERIALIZED",
+      "supervised_audio_to_midi_eligible": 0,
+      "real_evaluation_eligible_now": 0,
+      "new_audio_rendering_allowed": 0,
+      "summary_path": "data/bsed-bsd-orchestra-audio/summary.json",
+      "notes": "manual verification and note-onset refinement"
+    },
+    {
+      "source_id": "BSED_SYNTH",
+      "source_name": "BSED synthetic",
+      "label_grade": "SYNTH_RENDERED_MIDI",
+      "reported_or_enumerated_rows": 20,
+      "status": "SOURCE_VERIFIED_NOT_MATERIALIZED",
+      "supervised_audio_to_midi_eligible": 0,
+      "real_evaluation_eligible_now": 0,
+      "new_audio_rendering_allowed": 0,
+      "summary_path": "data/bsed-bsd-orchestra-audio/summary.json",
+      "notes": "existing synthetic version; do not re-render"
+    },
+    {
+      "source_id": "BSD_REAL",
+      "source_name": "BSD full movements",
+      "label_grade": "REAL_SCORE_ALIGNED",
+      "reported_or_enumerated_rows": 415,
+      "status": "BLOCKED_MANUAL_AUDIT",
+      "supervised_audio_to_midi_eligible": 0,
+      "real_evaluation_eligible_now": 0,
+      "new_audio_rendering_allowed": 0,
+      "summary_path": "data/bsed-bsd-orchestra-audio/summary.json",
+      "notes": "time aligned and structurally verified; weaker than BSED"
+    },
+    {
+      "source_id": "PHENICX",
+      "source_name": "PHENICX-Anechoic",
+      "label_grade": "REAL_SCORE_ALIGNED",
+      "reported_or_enumerated_rows": 4,
+      "status": "SOURCE_ALIGNMENT_STRONG_NOT_MATERIALIZED",
+      "supervised_audio_to_midi_eligible": 0,
+      "real_evaluation_eligible_now": 0,
+      "new_audio_rendering_allowed": 0,
+      "summary_path": "data/phenicx-anechoic-score-audio/summary.json",
+      "notes": "manual per-instrument alignment to original MIDI score"
+    },
+    {
+      "source_id": "HAUPTSTIMME",
+      "source_name": "Hauptstimme aligned IMSLP audio",
+      "label_grade": "REAL_SCORE_ALIGNED",
+      "reported_or_enumerated_rows": 166,
+      "status": "BLOCKED_MANUAL_SPOT_AND_AUDIO_MATERIALIZATION",
+      "supervised_audio_to_midi_eligible": 0,
+      "real_evaluation_eligible_now": 0,
+      "new_audio_rendering_allowed": 0,
+      "summary_path": "data/hauptstimme-aligned-orchestra-audio/summary.json",
+      "notes": "note-onset alignment exists but exact edition/performance fidelity not claimed"
+    },
+    {
+      "source_id": "RWC_SYNCRWC",
+      "source_name": "RWC Classical / SyncRWC",
+      "label_grade": "REAL_SCORE_ALIGNED",
+      "reported_or_enumerated_rows": 10,
+      "status": "BLOCKED_ALIGNMENT_NOT_GROUND_TRUTH",
+      "supervised_audio_to_midi_eligible": 0,
+      "real_evaluation_eligible_now": 0,
+      "new_audio_rendering_allowed": 0,
+      "summary_path": "data/rwc-classical-orchestra-midi-audio/summary.json",
+      "notes": "automatic sync source explicitly warns errors may exist"
+    },
+    {
+      "source_id": "URMP",
+      "source_name": "URMP chamber",
+      "label_grade": "REAL_SCORE_ALIGNED",
+      "reported_or_enumerated_rows": 44,
+      "status": "BLOCKED_NEEDS_EVENT_ALIGNMENT",
+      "supervised_audio_to_midi_eligible": 0,
+      "real_evaluation_eligible_now": 0,
+      "new_audio_rendering_allowed": 0,
+      "summary_path": "data/urmp-chamber-score-midi-audio/summary.json",
+      "notes": "score MIDI is reference; not expressive event-for-event ground truth"
+    },
+    {
+      "source_id": "MUTOPIA",
+      "source_name": "Mutopia Orchestra",
+      "label_grade": "SYMBOLIC_ONLY",
+      "reported_or_enumerated_rows": 67,
+      "status": "RENDER_HOLD",
+      "supervised_audio_to_midi_eligible": 0,
+      "real_evaluation_eligible_now": 0,
+      "new_audio_rendering_allowed": 0,
+      "summary_path": "data/mutopia-orchestra-score-midi/summary.json",
+      "notes": "same-edition score+MIDI, no paired audio"
+    },
+    {
+      "source_id": "MCTL_S3",
+      "source_name": "S3 Symbolic Symphony Set",
+      "label_grade": "SYMBOLIC_ONLY",
+      "reported_or_enumerated_rows": 16,
+      "status": "RENDER_HOLD",
+      "supervised_audio_to_midi_eligible": 0,
+      "real_evaluation_eligible_now": 0,
+      "new_audio_rendering_allowed": 0,
+      "summary_path": "data/mctl-symbolic-symphony-set/summary.json",
+      "notes": "MusicXML/PDF only; deterministic MIDI export possible but audio generation held"
+    }
+  ],
+  "real_eval_ready_rows": 0,
+  "real_eval_blocker": "real aligned/captured audio binaries + manual audit are not yet materialized in the training-ready workspace"
+}

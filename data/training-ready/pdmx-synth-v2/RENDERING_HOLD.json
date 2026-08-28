@@ -1,0 +1,7 @@
+{
+  "status": "HOLD",
+  "new_midi_to_audio_rendering_allowed": false,
+  "reason": "explicit user hold; preprocessing only",
+  "existing_upstream_synthetic_audio_may_be_indexed": true,
+  "audio_generation_commands_in_workflow": false
+}

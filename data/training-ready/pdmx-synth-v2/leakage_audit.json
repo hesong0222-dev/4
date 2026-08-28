@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "final_work_clusters": 12593,
+  "cross_split_leaks": {
+    "work_cluster_id_v2": 0,
+    "arrangement_cluster_id": 0,
+    "audio_variant_cluster_id": 0,
+    "midi_symbolic_fingerprint_score": 0
+  },
+  "exact_symbolic_duplicate_clusters": 314,
+  "transposition_invariant_candidate_clusters_not_auto_merged": 335,
+  "policy": "exact symbolic fingerprints are unioned with metadata work clusters before split; transposition-invariant collisions are audit-only to avoid false merges",
+  "future_real_audio_requirement": "union audio/chroma/acoustic fingerprints before freezing real evaluation"
+}

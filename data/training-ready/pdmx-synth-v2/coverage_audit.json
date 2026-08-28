@@ -1,0 +1,203 @@
+{
+  "status": "PASS_EVENT_LEVEL_SYMBOLIC_PREPROCESS_COMPLETE",
+  "records": 17599,
+  "resolved": [
+    "key_distribution",
+    "tempo_distribution",
+    "meter_distribution",
+    "drum_note_distribution",
+    "note_duration",
+    "velocity",
+    "polyphony",
+    "program_note_counts",
+    "track_names",
+    "symbolic_exact_duplicate_fingerprint"
+  ],
+  "drum_records": 2854,
+  "meter_top": [
+    [
+      "4/4",
+      10411
+    ],
+    [
+      "3/4",
+      2258
+    ],
+    [
+      "6/8",
+      1032
+    ],
+    [
+      "2/2",
+      1022
+    ],
+    [
+      "2/4",
+      862
+    ],
+    [
+      "4/2",
+      582
+    ],
+    [
+      "3/2",
+      284
+    ],
+    [
+      "6/4",
+      275
+    ],
+    [
+      "12/8",
+      225
+    ],
+    [
+      "9/8",
+      98
+    ],
+    [
+      "3/8",
+      96
+    ],
+    [
+      "2/1",
+      71
+    ],
+    [
+      "5/4",
+      63
+    ],
+    [
+      "8/4",
+      41
+    ],
+    [
+      "7/8",
+      30
+    ],
+    [
+      "5/2",
+      30
+    ],
+    [
+      "10/4",
+      26
+    ],
+    [
+      "4/8",
+      24
+    ],
+    [
+      "3/1",
+      24
+    ],
+    [
+      "7/4",
+      18
+    ]
+  ],
+  "estimated_key_top": [
+    [
+      "G major",
+      2215
+    ],
+    [
+      "C major",
+      1907
+    ],
+    [
+      "F major",
+      1727
+    ],
+    [
+      "D major",
+      1404
+    ],
+    [
+      "A minor",
+      1185
+    ],
+    [
+      "D minor",
+      1118
+    ],
+    [
+      "A# major",
+      1068
+    ],
+    [
+      "D# major",
+      893
+    ],
+    [
+      "E minor",
+      811
+    ],
+    [
+      "G minor",
+      789
+    ],
+    [
+      "A major",
+      775
+    ],
+    [
+      "G# major",
+      708
+    ],
+    [
+      "C minor",
+      579
+    ],
+    [
+      "E major",
+      467
+    ],
+    [
+      "B minor",
+      390
+    ],
+    [
+      "F minor",
+      295
+    ],
+    [
+      "",
+      205
+    ],
+    [
+      "C# major",
+      196
+    ],
+    [
+      "F# minor",
+      195
+    ],
+    [
+      "C# minor",
+      157
+    ],
+    [
+      "B major",
+      149
+    ],
+    [
+      "A# minor",
+      121
+    ],
+    [
+      "D# minor",
+      97
+    ],
+    [
+      "F# major",
+      92
+    ]
+  ],
+  "remaining_not_measurable_without_audio_or_score_semantics": {
+    "audio_master_cover_fingerprint": "REQUIRES_AUDIO_BINARY",
+    "same_work_renamed_cover_detection": "REQUIRES_AUDIO_OR_SCORE_SIMILARITY_MODEL",
+    "printed_staff_identity_beyond_MIDI_track_names": "REQUIRES_MUSICXML_STAFF_PARSE"
+  },
+  "rendered_audio_created": false
+}

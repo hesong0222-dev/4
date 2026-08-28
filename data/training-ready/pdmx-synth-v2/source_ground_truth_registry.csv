@@ -1,0 +1,13 @@
+source_id,source_name,label_grade,reported_or_enumerated_rows,status,supervised_audio_to_midi_eligible,real_evaluation_eligible_now,new_audio_rendering_allowed,summary_path,notes
+PDMX_SYNTH,PDMX audited score-synthesis,SYNTH_RENDERED_MIDI,17599,READY,1,0,0,data/audited-pdmx-score-synthesis/summary.json,same-source MIDI rendered upstream; no new rendering performed
+SYNTHSOD,SynthSOD aligned scores,SYNTH_RENDERED_MIDI,484,SOURCE_VERIFIED_NOT_MATERIALIZED,0,0,0,data/synthsod-aligned-score-audio/summary.json,MIDI-derived note scores aligned to existing synthetic audio
+ENSEMBLESET,EnsembleSet,SYNTH_RENDERED_MIDI,80,BLOCKED_RESTRICTED_ACCESS,0,0,0,data/ensembleset-chamber-score-midi-audio/summary.json,synthetic multitracks from MIDI/MusicXML; academic/RWC access boundary
+BSED_REAL,BSED real performances,REAL_SCORE_ALIGNED,80,SOURCE_ALIGNMENT_STRONG_NOT_MATERIALIZED,0,0,0,data/bsed-bsd-orchestra-audio/summary.json,manual verification and note-onset refinement
+BSED_SYNTH,BSED synthetic,SYNTH_RENDERED_MIDI,20,SOURCE_VERIFIED_NOT_MATERIALIZED,0,0,0,data/bsed-bsd-orchestra-audio/summary.json,existing synthetic version; do not re-render
+BSD_REAL,BSD full movements,REAL_SCORE_ALIGNED,415,BLOCKED_MANUAL_AUDIT,0,0,0,data/bsed-bsd-orchestra-audio/summary.json,time aligned and structurally verified; weaker than BSED
+PHENICX,PHENICX-Anechoic,REAL_SCORE_ALIGNED,4,SOURCE_ALIGNMENT_STRONG_NOT_MATERIALIZED,0,0,0,data/phenicx-anechoic-score-audio/summary.json,manual per-instrument alignment to original MIDI score
+HAUPTSTIMME,Hauptstimme aligned IMSLP audio,REAL_SCORE_ALIGNED,166,BLOCKED_MANUAL_SPOT_AND_AUDIO_MATERIALIZATION,0,0,0,data/hauptstimme-aligned-orchestra-audio/summary.json,note-onset alignment exists but exact edition/performance fidelity not claimed
+RWC_SYNCRWC,RWC Classical / SyncRWC,REAL_SCORE_ALIGNED,10,BLOCKED_ALIGNMENT_NOT_GROUND_TRUTH,0,0,0,data/rwc-classical-orchestra-midi-audio/summary.json,automatic sync source explicitly warns errors may exist
+URMP,URMP chamber,REAL_SCORE_ALIGNED,44,BLOCKED_NEEDS_EVENT_ALIGNMENT,0,0,0,data/urmp-chamber-score-midi-audio/summary.json,score MIDI is reference; not expressive event-for-event ground truth
+MUTOPIA,Mutopia Orchestra,SYMBOLIC_ONLY,67,RENDER_HOLD,0,0,0,data/mutopia-orchestra-score-midi/summary.json,"same-edition score+MIDI, no paired audio"
+MCTL_S3,S3 Symbolic Symphony Set,SYMBOLIC_ONLY,16,RENDER_HOLD,0,0,0,data/mctl-symbolic-symphony-set/summary.json,MusicXML/PDF only; deterministic MIDI export possible but audio generation held

@@ -1,0 +1,33 @@
+{
+  "source": "PDMX v9 strict symbolic manifest + official mid.tar.gz",
+  "input_records": 77321,
+  "parsed_ok": 77321,
+  "parse_failures": 0,
+  "parse_success_fraction": 1.0,
+  "midi_event_fields_resolved": [
+    "key_signature",
+    "estimated_key",
+    "tempo_map",
+    "time_signature",
+    "channel_10_drums",
+    "note_count",
+    "note_duration",
+    "velocity",
+    "polyphony",
+    "track_names",
+    "program_note_counts",
+    "symbolic_fingerprints"
+  ],
+  "rendered_audio_created": false,
+  "rendering_prohibited_in_this_workflow": true,
+  "exact_symbolic_duplicate_clusters": 772,
+  "exact_symbolic_duplicate_records": 1841,
+  "transposition_invariant_candidate_clusters": 945,
+  "validation": {
+    "record_count_exact": true,
+    "all_midi_parsed": true,
+    "zero_parse_errors": true,
+    "shard_rows_sum": true,
+    "passed": true
+  }
+}

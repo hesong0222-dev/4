@@ -1,0 +1,25 @@
+{
+  "status": "TRAINING_READY_SYNTHETIC_SYMBOLIC_PREPROCESS_COMPLETE",
+  "input_pairs": 17599,
+  "label_grade": "SYNTH_RENDERED_MIDI",
+  "pseudo_labels_supervised": 0,
+  "midi_event_parse_joined": 17599,
+  "final_work_clusters": 12593,
+  "strict_eval_representatives": {
+    "dev": 100,
+    "sealed_test": 150,
+    "rare_challenge": 50
+  },
+  "human_review_queue": 500,
+  "real_captured_or_real_score_aligned_eval_ready_rows": 0,
+  "real_eval_status": "BLOCKED_UNTIL_REAL_BINARY_MATERIALIZATION_AND_MANUAL_AUDIT",
+  "new_midi_to_audio_rendering_performed": false,
+  "rendering_hold": true,
+  "validation": {
+    "all_pairs_event_parsed": true,
+    "pseudo_labels_excluded": true,
+    "cluster_leakage_zero": true,
+    "eval_counts_exact": true,
+    "passed": true
+  }
+}
