@@ -1,0 +1,201 @@
+{
+  "advisory_only_sources": [
+    "International Piano e-Competition mirror",
+    "POP909"
+  ],
+  "automatic_calibration_sources": [
+    "GMD",
+    "ASAP"
+  ],
+  "calibration_version": "empirical-2026-08-28.1",
+  "drums": {
+    "crash": {
+      "evidence": "REAL_CAPTURED_MIDI",
+      "source": "GMD",
+      "timing_mad_ms": 21.740002380960632,
+      "timing_median_ms": -4.509997619038586,
+      "timing_p90_abs_proxy_ms": 41.43173444625603,
+      "velocity_mad": 22.0,
+      "velocity_median": 90.0
+    },
+    "hihat": {
+      "evidence": "REAL_CAPTURED_MIDI",
+      "source": "GMD",
+      "timing_mad_ms": 17.745809959812675,
+      "timing_median_ms": -14.51927797618957,
+      "timing_p90_abs_proxy_ms": 45.99999999999227,
+      "velocity_mad": 20.0,
+      "velocity_median": 57.0
+    },
+    "kick": {
+      "evidence": "REAL_CAPTURED_MIDI",
+      "source": "GMD",
+      "timing_mad_ms": 17.717039320725824,
+      "timing_median_ms": -8.7890625,
+      "timing_p90_abs_proxy_ms": 41.66666666666785,
+      "velocity_mad": 18.0,
+      "velocity_median": 53.0
+    },
+    "other": {
+      "evidence": "REAL_CAPTURED_MIDI",
+      "source": "GMD",
+      "timing_mad_ms": 13.486131547637115,
+      "timing_median_ms": -7.8125,
+      "timing_p90_abs_proxy_ms": 36.24999999999545,
+      "velocity_mad": 31.0,
+      "velocity_median": 91.0
+    },
+    "ride": {
+      "evidence": "REAL_CAPTURED_MIDI",
+      "source": "GMD",
+      "timing_mad_ms": 15.975863580159455,
+      "timing_median_ms": -6.865912221115877,
+      "timing_p90_abs_proxy_ms": 36.909213124997905,
+      "velocity_mad": 20.0,
+      "velocity_median": 68.0
+    },
+    "snare": {
+      "evidence": "REAL_CAPTURED_MIDI",
+      "source": "GMD",
+      "timing_mad_ms": 19.421076067935417,
+      "timing_median_ms": -8.600412377454347,
+      "timing_p90_abs_proxy_ms": 44.12438970588184,
+      "velocity_mad": 30.0,
+      "velocity_median": 56.0
+    },
+    "tom": {
+      "evidence": "REAL_CAPTURED_MIDI",
+      "source": "GMD",
+      "timing_mad_ms": 18.574929435473564,
+      "timing_median_ms": -10.070903897855032,
+      "timing_p90_abs_proxy_ms": 42.41194908426262,
+      "velocity_mad": 25.0,
+      "velocity_median": 88.0
+    }
+  },
+  "fast_passage_reference": {
+    "asap_local_note_density_hz": {
+      "mad": 5.0,
+      "mean": 15.485334832478042,
+      "median": 15.0,
+      "n": 3216056,
+      "p05": 5.0,
+      "p10": 6.0,
+      "p25": 10.0,
+      "p75": 20.0,
+      "p90": 25.0,
+      "p95": 29.0,
+      "p99": 38.0
+    },
+    "e_piano_max_local_note_density_hz_advisory": {
+      "mad": 9.0,
+      "mean": 34.35211846976553,
+      "median": 32.0,
+      "n": 2431,
+      "p05": 16.0,
+      "p10": 19.0,
+      "p25": 24.0,
+      "p75": 43.0,
+      "p90": 53.0,
+      "p95": 61.5,
+      "p99": 74.69999999999982
+    },
+    "planner_rule": "timing variance must not increase with local density; preserve distinct-onset ordering",
+    "pop909_max_local_note_density_hz_structural": {
+      "mad": 3.0,
+      "mean": 17.580858085808583,
+      "median": 17.0,
+      "n": 909,
+      "p05": 11.0,
+      "p10": 12.0,
+      "p25": 14.0,
+      "p75": 20.0,
+      "p90": 24.0,
+      "p95": 28.0,
+      "p99": 35.0
+    }
+  },
+  "piano": {
+    "chord_spread_ms": {
+      "mad": 10.01601041667044,
+      "mean": 29.59685339125789,
+      "median": 16.025656250000964,
+      "n": 807171,
+      "p05": 1.3354687499997908,
+      "p10": 3.2051312499987716,
+      "p25": 8.012812499941901,
+      "p75": 31.25,
+      "p90": 62.76703124999905,
+      "p95": 122.39583333331439,
+      "p99": 212.6066250000065
+    },
+    "evidence": "REAL_SCORE_ALIGNED_PERFORMANCE_MIDI",
+    "gate_ratio": {
+      "mad": 0.296085660925423,
+      "mean": 4.77439022312274,
+      "median": 0.6339425970481516,
+      "n": 3216056,
+      "p05": 0.17390870038254863,
+      "p10": 0.23149437670280015,
+      "p25": 0.3725534529987563,
+      "p75": 0.985993049110852,
+      "p90": 1.3442855117184207,
+      "p95": 1.8083238131432378,
+      "p99": 88.86544944163708
+    },
+    "microtiming_abs_ms": {
+      "mad": 9.014125000007311,
+      "mean": 25.245806842665527,
+      "median": 10.68350000002738,
+      "n": 3216056,
+      "p05": 0.00027291665105622087,
+      "p10": 0.26731354166820154,
+      "p25": 3.338812499919186,
+      "p75": 27.560833333325263,
+      "p90": 69.67873611112907,
+      "p95": 114.85012499979064,
+      "p99": 189.94201593755946
+    },
+    "microtiming_residual_ms": {
+      "mad": 10.683510416555464,
+      "mean": 1.7806057776284538,
+      "median": -8.333333312293689e-05,
+      "n": 3216056,
+      "p05": -62.50033333333249,
+      "p10": -34.05440624999301,
+      "p25": -10.93799999999967,
+      "p75": 10.350187500023367,
+      "p90": 36.948177083317546,
+      "p95": 79.39591477278896,
+      "p99": 180.33920416666655
+    },
+    "source": "ASAP",
+    "timing_scale_by_density": {
+      "12_16": 0.9584788742296074,
+      "4_8": 1.1214248620252953,
+      "8_12": 0.9929012398523632,
+      "ge16": 0.9105297917443665,
+      "lt4": 0.8785751379747048
+    },
+    "velocity": {
+      "mad": 13.0,
+      "mean": 65.99043984308732,
+      "median": 67.0,
+      "n": 3216056,
+      "p05": 35.0,
+      "p10": 42.0,
+      "p25": 54.0,
+      "p75": 79.0,
+      "p90": 89.0,
+      "p95": 94.0,
+      "p99": 103.0
+    }
+  },
+  "render_audio_enabled": false,
+  "rights_notes": {
+    "ASAP": "CC BY-NC-SA 4.0; research/non-commercial calibration tier",
+    "GMD": "CC BY 4.0",
+    "POP909": "repository MIT but underlying popular-song rights require separate treatment; structural advisory statistics only",
+    "e_piano": "underlying MIDI license unclear; aggregate advisory statistics only"
+  }
+}

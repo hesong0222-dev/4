@@ -1,0 +1,21 @@
+{
+  "asap": {
+    "commit": "afc815c75c42e83a79c03feb6da8a35e77d4c6b8",
+    "license": "CC BY-NC-SA 4.0"
+  },
+  "audio_rendered": false,
+  "generated_utc": "2026-08-28",
+  "gmd": {
+    "license": "CC BY 4.0",
+    "release": "groove-v1.0.0-midionly.zip",
+    "sha256": "651cbc524ffb891be1a3e46d89dc82a1cecb09a57c748c7b45b844c4841dcc1e"
+  },
+  "international_e_piano": {
+    "commit": "see git_snapshot.txt",
+    "underlying_midi_license": "unclear; advisory aggregate statistics only"
+  },
+  "pop909": {
+    "commit": "see git_snapshot.txt",
+    "use": "structural advisory only"
+  }
+}

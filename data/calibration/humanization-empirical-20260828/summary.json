@@ -1,0 +1,37 @@
+{
+  "audio_rendered": false,
+  "automatic_defaults_calibrated_from": [
+    "GMD drums",
+    "ASAP piano"
+  ],
+  "not_calibrated_due_to_missing_direct_performance_evidence": [
+    "bass",
+    "guitar",
+    "strings",
+    "brass",
+    "woodwinds",
+    "voice",
+    "synth"
+  ],
+  "render_hold": true,
+  "sources": {
+    "asap": {
+      "aligned_performances": 1036,
+      "match_rate": 0.906535198801455,
+      "matched_notes": 3216056
+    },
+    "epiano": {
+      "advisory_only": true,
+      "files": 2431
+    },
+    "gmd": {
+      "files": 1150,
+      "hits": 446311
+    },
+    "pop909": {
+      "songs": 909,
+      "structural_only": true
+    }
+  },
+  "status": "PASS"
+}
