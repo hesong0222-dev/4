@@ -1,0 +1,210 @@
+name: Enumerate Text2Score SymphonyNet score-MIDI tier once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/build-text2score-symphonynet-once.yml
+      - text2score-symphonynet-trigger.txt
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: text2score-symphonynet-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  enumerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Validate the enumerator locally first
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile \
+            scripts/build_text2score_symphonynet_manifest.py \
+            tests/test_text2score_symphonynet_manifest.py
+          python3 -m unittest discover \
+            -s tests -p 'test_text2score_symphonynet_manifest.py' -v
+
+      - name: Install bounded download helpers
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check --no-cache-dir \
+            'huggingface_hub>=0.34' hf_xet 'gdown>=5,<6'
+
+      - name: Download the pinned Text2Score archive
+        id: text2score
+        shell: bash
+        env:
+          HF_HOME: /tmp/huggingface
+          HF_HUB_DISABLE_TELEMETRY: "1"
+        run: |
+          set -euo pipefail
+          SCORE_ARCHIVE="$(python3 - <<'PY'
+          from huggingface_hub import hf_hub_download
+          print(hf_hub_download(
+              repo_id='emotionwave-company/text2score',
+              repo_type='dataset',
+              filename='ABC_Dataset_only_abci_pkl_json.tar',
+          ))
+          PY
+          )"
+          test -s "$SCORE_ARCHIVE"
+          echo "score_archive=$SCORE_ARCHIVE" >> "$GITHUB_OUTPUT"
+          ls -lh "$SCORE_ARCHIVE"
+          df -h /tmp
+
+      - name: Download the official SymphonyNet MIDI archive when accessible
+        id: symphonynet
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIDI_ARCHIVE='/tmp/SymphonyNet_Dataset.tar.gz'
+          if gdown --fuzzy \
+            'https://drive.google.com/file/d/1j9Pvtzaq8k_QIPs8e2ikvCR-BusPluTb/view?usp=sharing' \
+            --output "$MIDI_ARCHIVE" && test -s "$MIDI_ARCHIVE"; then
+            echo "midi_archive=$MIDI_ARCHIVE" >> "$GITHUB_OUTPUT"
+            echo 'midi_downloaded=true' >> "$GITHUB_OUTPUT"
+            ls -lh "$MIDI_ARCHIVE"
+          else
+            rm -f "$MIDI_ARCHIVE"
+            echo 'midi_archive=' >> "$GITHUB_OUTPUT"
+            echo 'midi_downloaded=false' >> "$GITHUB_OUTPUT"
+            echo 'Original MIDI archive was unavailable; the ABC inventory will still be built.'
+          fi
+
+      - name: Enumerate, hash, deduplicate and verify source records
+        shell: bash
+        env:
+          SCORE_ARCHIVE: ${{ steps.text2score.outputs.score_archive }}
+          MIDI_ARCHIVE: ${{ steps.symphonynet.outputs.midi_archive }}
+        run: |
+          set -euo pipefail
+          OUT='data/text2score-symphonynet-score-midi'
+          rm -rf "$OUT"
+          MIDI_ARGS=()
+          if [[ -n "${MIDI_ARCHIVE:-}" && -s "$MIDI_ARCHIVE" ]]; then
+            MIDI_ARGS=(--midi-archive "$MIDI_ARCHIVE")
+          fi
+          python3 scripts/build_text2score_symphonynet_manifest.py \
+            --score-archive "$SCORE_ARCHIVE" \
+            "${MIDI_ARGS[@]}" \
+            --output "$OUT" \
+            --minimum 1 \
+            --shard-size 10000
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          sym_path = Path('data/text2score-symphonynet-score-midi/summary.json')
+          sym = json.loads(sym_path.read_text(encoding='utf-8'))
+          assert sym['validation']['passed'] is True
+          assert sym['validation']['unique_record_ids'] is True
+          assert sym['validation']['unique_score_member_paths'] is True
+          assert sym['enumerated_score_records'] > 0
+
+          pdmx_path = Path('data/pdmx-v9-all-orchestra-score-midi/summary.json')
+          pdmx = json.loads(pdmx_path.read_text(encoding='utf-8'))
+          pdmx_canonical = int(pdmx['canonical_deduplicated_records'])
+          sym_canonical = int(sym['canonical_unique_score_hashes'])
+          combined = {
+              'catalog': 'Orchestra score–MIDI source registry',
+              'requested_target': 10000,
+              'target_reached': pdmx_canonical + sym_canonical >= 10000,
+              'canonical_source_records_total': pdmx_canonical + sym_canonical,
+              'cross_source_musical_work_deduplication_performed': False,
+              'tiers': {
+                  'same_source_encoded_score_exports': {
+                      'source': 'PDMX v9',
+                      'records': pdmx_canonical,
+                      'claim': 'MXL, PDF and MIDI are exports associated with the same PDMX score record',
+                  },
+                  'midi_derived_renderable_scores': {
+                      'source': 'Text2Score SymphonyNet subset',
+                      'records': sym_canonical,
+                      'claim': 'Quantized MIDI-derived ABC score; deterministically exportable to MusicXML, MIDI and PDF',
+                  },
+              },
+              'not_claimed': [
+                  'independently engraved edition for the MIDI-derived tier',
+                  'matching human-orchestra recording',
+                  'cross-source unique composition count',
+                  'independent verification of underlying composition rights in SymphonyNet',
+              ],
+              'source_summaries': {
+                  'pdmx': '../pdmx-v9-all-orchestra-score-midi/summary.json',
+                  'text2score_symphonynet': '../text2score-symphonynet-score-midi/summary.json',
+              },
+          }
+          root = Path('data/orchestra-score-midi-catalog')
+          root.mkdir(parents=True, exist_ok=True)
+          (root / 'summary.json').write_text(
+              json.dumps(combined, ensure_ascii=False, indent=2, sort_keys=True) + '\n',
+              encoding='utf-8',
+          )
+          (root / 'source_counts.csv').write_text(
+              'tier,source,canonical_records\n'
+              f"same_source_encoded_score_exports,PDMX v9,{pdmx_canonical}\n"
+              f"midi_derived_renderable_scores,Text2Score SymphonyNet subset,{sym_canonical}\n",
+              encoding='utf-8',
+          )
+          (root / 'README.md').write_text(
+              '# Combined orchestra score–MIDI source registry\n\n'
+              f'- PDMX canonical same-source records: **{pdmx_canonical:,}**\n'
+              f'- Text2Score/SymphonyNet unique MIDI-derived ABC scores: **{sym_canonical:,}**\n'
+              f'- source-record total: **{pdmx_canonical + sym_canonical:,}**\n'
+              f'- 10,000 target reached: **{combined["target_reached"]}**\n\n'
+              'The total combines two different provenance tiers and is not a cross-source unique-work count.\n',
+              encoding='utf-8',
+          )
+          print(json.dumps(combined, ensure_ascii=False, indent=2, sort_keys=True))
+          PY
+          (
+            cd "$OUT"
+            sha256sum --check SHA256SUMS
+          )
+          (
+            cd data/orchestra-score-midi-catalog
+            find . -type f ! -name SHA256SUMS -print0 \
+              | sort -z | xargs -0 sha256sum > SHA256SUMS
+            sha256sum --check SHA256SUMS
+          )
+          {
+            echo '## Text2Score / SymphonyNet enumeration'
+            echo
+            echo '```json'
+            cat "$OUT/summary.json"
+            echo '```'
+            echo
+            echo '## Combined registry'
+            echo
+            echo '```json'
+            cat data/orchestra-score-midi-catalog/summary.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit generated manifests once
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            data/text2score-symphonynet-score-midi \
+            data/orchestra-score-midi-catalog
+          if git diff --cached --quiet; then
+            echo 'Generated manifests are unchanged.'
+            exit 0
+          fi
+          git commit -m 'data: add SymphonyNet MIDI-derived score inventory [skip ci]'
+          git push
