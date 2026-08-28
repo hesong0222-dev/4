@@ -1,0 +1,31 @@
+{
+  "archive_extension_counts": {
+    ".json": 4,
+    ".txt": 484
+  },
+  "claim": "Full-track note-event scores were obtained from the MIDI used to synthesize SynthSOD and aligned to the corresponding synthetic audio.",
+  "duplicate_score_contents": 0,
+  "enumerated_aligned_score_records": 484,
+  "metadata_song_records": 484,
+  "not_claimed": [
+    "printable engraved full score",
+    "human performance",
+    "independently authored score edition"
+  ],
+  "rejection_counts": {},
+  "score_audio_pair_class": "midi_derived_note_score_aligned_to_synthetic_orchestra_audio",
+  "score_records_with_metadata_match": 484,
+  "source": "SynthSOD aligned scores v2",
+  "source_archive_expected_md5": "121bf77f59869ea332e8968d791a3f8c",
+  "source_archive_observed_md5": "121bf77f59869ea332e8968d791a3f8c",
+  "source_doi": "10.5281/zenodo.15575778",
+  "source_url": "https://zenodo.org/records/15575778",
+  "unique_member_paths": 484,
+  "unique_record_ids": 484,
+  "unique_score_hashes": 484,
+  "validation": {
+    "all_have_notes": true,
+    "archive_md5_matches": true,
+    "passed": true
+  }
+}
