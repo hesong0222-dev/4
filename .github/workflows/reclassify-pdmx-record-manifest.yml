@@ -1,0 +1,54 @@
+name: Correct PDMX manifest GM family boundaries once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/reclassify_pdmx_record_manifest.py
+      - pdmx-reclassify-trigger.txt
+      - .github/workflows/reclassify-pdmx-record-manifest.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pdmx-reclassify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  reclassify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Validate and rewrite only derived fields
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/reclassify_pdmx_record_manifest.py
+          python3 scripts/reclassify_pdmx_record_manifest.py \
+            --root data/pdmx-v9-record-instrument-manifest > /tmp/reclassify.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          result=json.loads(Path('/tmp/reclassify.json').read_text())
+          summary=json.loads(Path('data/pdmx-v9-record-instrument-manifest/summary.json').read_text())
+          assert result['records'] == 77321
+          assert summary['records'] == 77321
+          assert summary['unique_record_ids'] == 77321
+          assert summary['classifier_version'] == 'v2-gm-boundary-corrected'
+          assert summary['validation']['passed'] is True
+          print(json.dumps(result, indent=2))
+          PY
+
+      - name: Commit corrected derived fields once
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/pdmx-v9-record-instrument-manifest
+          git commit -m 'fix(data): correct PDMX GM family boundaries [skip ci]'
+          git push
