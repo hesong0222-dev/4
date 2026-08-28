@@ -17,7 +17,7 @@ concurrency:
 jobs:
   preprocess:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -40,7 +40,6 @@ jobs:
           rm -rf "$OUT"
           python3 /tmp/preprocess_training_ready.py \
             --exact data/audited-pdmx-score-synthesis/verified_exact_pairs_17599.csv.gz \
-            --records-root data/pdmx-v9-record-instrument-manifest \
             --output "$OUT" \
             --expected-exact 17599 \
             --dev 100 --sealed 150 --rare 50 --review 500
@@ -55,10 +54,19 @@ jobs:
           assert s['pseudo_labels_in_supervised_manifest']==0
           assert s['strict_eval_representatives']=={'dev':100,'sealed_test':150,'rare_challenge':50}
           assert s['human_review_queue']==500
+          assert s['human_verified_post_training_rows']==0
+          assert s['real_captured_or_real_score_aligned_eval_rows']==0
           assert all(s['validation'].values())
+          cov=json.loads(Path('data/training-ready/pdmx-synth-v1/coverage_audit.json').read_text())
+          assert cov['records']==17599
+          assert cov['status']=='PASS_WITH_DECLARED_METADATA_GAPS'
           print(json.dumps(s,ensure_ascii=False,indent=2))
+          print(json.dumps(cov,ensure_ascii=False,indent=2))
           PY
-          sha256sum --check "$OUT/SHA256SUMS"
+          (
+            cd "$OUT"
+            sha256sum --check SHA256SUMS
+          )
 
       - name: Persist readable preprocessor and outputs
         shell: bash
