@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - scripts/build_pdmx_record_instrument_manifest.py
+      - scripts/reclassify_pdmx_record_manifest.py
       - pdmx-record-manifest-trigger.txt
       - .github/workflows/build-pdmx-record-manifest.yml
   workflow_dispatch:
@@ -29,7 +30,9 @@ jobs:
       - name: Local-style synthetic validation
         run: |
           set -euo pipefail
-          python3 -m py_compile scripts/build_pdmx_record_instrument_manifest.py
+          python3 -m py_compile \
+            scripts/build_pdmx_record_instrument_manifest.py \
+            scripts/reclassify_pdmx_record_manifest.py
           rm -rf /tmp/pdmx-manifest-test
           cat > /tmp/pdmx-test.csv <<'CSV'
           path,tracks,n_tracks,mxl,pdf,mid,subset:no_license_conflict,subset:all_valid,subset:deduplicated,title,song_name,composer_name,genres,license,license_url
@@ -41,6 +44,8 @@ jobs:
           python3 scripts/build_pdmx_record_instrument_manifest.py \
             --input /tmp/pdmx-test.csv --output /tmp/pdmx-manifest-test \
             --min-records 2 --shard-size 1 >/tmp/pdmx-test-result.json
+          python3 scripts/reclassify_pdmx_record_manifest.py \
+            --root /tmp/pdmx-manifest-test >/tmp/pdmx-reclassify-test-result.json
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -48,6 +53,7 @@ jobs:
           assert s['records'] == 2
           assert s['unique_record_ids'] == 2
           assert s['validation']['passed'] is True
+          assert s['classifier_version'] == 'v2-gm-boundary-corrected'
           assert s['ensemble_counts']['chamber.string_quartet'] == 1
           assert s['ensemble_counts']['orchestra.full.symphonic'] == 1
           PY
@@ -70,6 +76,7 @@ jobs:
           python3 scripts/build_pdmx_record_instrument_manifest.py \
             --input /tmp/pdmx-v9/PDMX.csv --output "$OUT" \
             --min-records 10000 --shard-size 20000
+          python3 scripts/reclassify_pdmx_record_manifest.py --root "$OUT"
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -77,6 +84,7 @@ jobs:
           assert s['validation']['passed'] is True
           assert s['records'] == s['unique_record_ids']
           assert s['records'] >= 10000
+          assert s['classifier_version'] == 'v2-gm-boundary-corrected'
           print('accepted_records=', s['records'])
           print('record_instrument_rows=', s['record_instrument_rows'])
           print('ensemble_counts=', s['ensemble_counts'])
