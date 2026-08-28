@@ -1,0 +1,28 @@
+{
+  "validation_type": "local_synthetic_midi_smoke_test",
+  "date": "2026-08-28",
+  "audio_rendered": false,
+  "input_note_events": 40,
+  "output_note_events": 40,
+  "qa": {
+    "pitch_identity_preserved": true,
+    "note_count_preserved": true,
+    "canonical_event_mapping_one_to_one": true,
+    "positive_durations": true,
+    "distinct_onset_order_preserved": true,
+    "passed": true
+  },
+  "test_content": [
+    "kick track",
+    "bass track",
+    "piano chord track",
+    "shared RHYTHM_CORE anchor",
+    "FUNK_16 template",
+    "track-specific timing/velocity/duration/chord spread"
+  ],
+  "limitations": [
+    "This is a synthetic smoke test, not corpus-scale validation.",
+    "No audio renderer or VST was invoked.",
+    "Real-corpus calibration is still required before audio rendering is enabled."
+  ]
+}
