@@ -1,0 +1,40 @@
+{
+  "ASAP": {
+    "commit": "afc815c75c42e83a79c03feb6da8a35e77d4c6b8",
+    "evidence": "real score-aligned piano performance MIDI"
+  },
+  "GMD": {
+    "evidence": "direct captured drummer MIDI",
+    "release": "groove-v1.0.0-midionly.zip",
+    "sha256": "651cbc524ffb891be1a3e46d89dc82a1cecb09a57c748c7b45b844c4841dcc1e"
+  },
+  "GuitarSet": {
+    "annotation_md5": "b39b78e63d3446f2e54ddb7a54df9b10",
+    "evidence": "real guitar note+beat annotations",
+    "record": "Zenodo 3371780"
+  },
+  "IDMT_Bass": {
+    "archive_md5": "c85540c664e8b13badd86880bacf11fa",
+    "evidence": "real bass note/articulation annotations",
+    "record": "Zenodo 7544099"
+  },
+  "International_e_piano": {
+    "commit": "daa68906166e37daa32be1e1758a3e1b56e6be00",
+    "use": "advisory only; underlying MIDI rights unclear"
+  },
+  "POP909": {
+    "commit": "d83e6edba6872a704f5d3b8b32f5cb540088dae6",
+    "use": "structural advisory only"
+  },
+  "RWC": {
+    "commit": "0a1a6c31dbe73a7f5d44f7caef8cd0999402a4c2",
+    "evidence": "professional aligned MIDI + beat annotations; proxy tier"
+  },
+  "URMP": {
+    "downloaded": "symbolic/note annotations only",
+    "evidence": "separately recorded coordinated chamber performances",
+    "mimut_snapshot": "bb320faf307f5d24aeced0e60f9445ff0abce205"
+  },
+  "audio_rendered": false,
+  "generated_utc": "2026-08-28"
+}

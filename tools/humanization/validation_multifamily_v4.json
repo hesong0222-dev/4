@@ -1,0 +1,27 @@
+{
+  "audio_rendered": false,
+  "automatic_empirical_families": [
+    "brass",
+    "drums",
+    "guitar",
+    "keys",
+    "strings",
+    "woodwinds"
+  ],
+  "calibration_version": "empirical-2026-08-28.4-multifamily",
+  "proxy_families": [
+    "bass",
+    "synth",
+    "voice"
+  ],
+  "still_provisional_families": [],
+  "transform_qa": {
+    "distinct_onset_order_preserved": true,
+    "note_count_preserved": true,
+    "output_note_events": 28,
+    "passed": true,
+    "pitch_identity_and_note_order_signature_preserved": true,
+    "positive_durations": true
+  },
+  "validation": "multifamily_v4_midi_only_end_to_end"
+}
