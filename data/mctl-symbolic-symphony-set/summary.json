@@ -1,0 +1,31 @@
+{
+  "source": "S3: Symbolic Symphony Set",
+  "source_repository": "iis-mctl/mctl-symphony-dataset",
+  "source_url": "https://github.com/iis-mctl/mctl-symphony-dataset",
+  "enumerated_full_movement_scores": 16,
+  "symphonies": 4,
+  "composers": 4,
+  "notes_in_source_corpus": 285387,
+  "phrases_in_source_corpus": 532,
+  "chords_in_source_corpus": 7290,
+  "score_formats": [
+    "PDF",
+    "MusicXML"
+  ],
+  "midi_prepackaged": false,
+  "pair_class": "encoded_full_score_deterministic_midi_export",
+  "claim": "Each of the 16 complete symphony movements has a colocated PDF and MusicXML score; MIDI can be deterministically exported from the exact MusicXML.",
+  "human_performance_claim": false,
+  "license": "MIT",
+  "works": {
+    "Mozart Symphony No. 41 in C major": 4,
+    "Beethoven Symphony No. 9 in D minor": 4,
+    "Tchaikovsky Symphony No. 6 in B minor": 4,
+    "Dvorak Symphony No. 9 in E minor": 4
+  },
+  "validation": {
+    "passed": true,
+    "unique_piece_codes": 16,
+    "all_paths_follow_published_repository_structure": true
+  }
+}
