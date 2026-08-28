@@ -1,0 +1,109 @@
+name: Build all PDMX orchestra score-MIDI records once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/build-pdmx-all-orchestra-once.yml
+      - scripts/build_pdmx_all_orchestra_manifest.py
+      - tests/test_all_orchestra_manifest.py
+      - pdmx-all-orchestra-trigger.txt
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pdmx-all-orchestra-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run local-style validation first
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile \
+            scripts/build_pdmx_all_orchestra_manifest.py \
+            tests/test_all_orchestra_manifest.py
+          python3 -m unittest discover \
+            -s tests -p 'test_all_orchestra_manifest.py' -v
+
+      - name: Download pinned PDMX v9 metadata once
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/pdmx-v9
+          curl --fail --location \
+            --retry 6 --retry-all-errors --retry-delay 5 \
+            --output /tmp/pdmx-v9/PDMX.csv \
+            'https://zenodo.org/records/15571083/files/PDMX.csv?download=1'
+          printf '%s  %s\n' \
+            '30392ccf38bb63ce70e7afae70f9c88c' \
+            '/tmp/pdmx-v9/PDMX.csv' | md5sum --check -
+
+      - name: Build and verify the inclusive all-arrangement manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT='data/pdmx-v9-all-orchestra-score-midi'
+          rm -rf "$OUT"
+          SOURCE_MD5="$(md5sum /tmp/pdmx-v9/PDMX.csv | awk '{print $1}')"
+          python3 scripts/build_pdmx_all_orchestra_manifest.py \
+            --input /tmp/pdmx-v9/PDMX.csv \
+            --output "$OUT" \
+            --minimum-inclusive 10000 \
+            --shard-size 20000 \
+            --source-md5 "$SOURCE_MD5"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('data/pdmx-v9-all-orchestra-score-midi/summary.json')
+          summary = json.loads(path.read_text(encoding='utf-8'))
+          assert summary['validation']['passed'] is True
+          assert summary['validation']['unique_ids'] is True
+          assert summary['validation']['unique_paths'] is True
+          assert summary['inclusive_orchestra_score_midi_records'] >= 10000
+          assert summary['source_csv_observed_md5'] == '30392ccf38bb63ce70e7afae70f9c88c'
+          exact = summary['exactness_definition']
+          assert exact['class'] == 'same_symbolic_source_exact'
+          assert exact['human_performance_claim'] is False
+          assert (
+              summary['strict_records']
+              + summary['probable_records']
+              + summary['candidate_records']
+              == summary['inclusive_orchestra_score_midi_records']
+          )
+          print(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True))
+          PY
+          (cd "$OUT" && sha256sum --check SHA256SUMS)
+          {
+            echo '## PDMX all-arrangement orchestra score–MIDI manifest'
+            echo
+            echo '```json'
+            cat "$OUT/summary.json"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit generated manifest once
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/pdmx-v9-all-orchestra-score-midi
+          if git diff --cached --quiet; then
+            echo 'Generated manifest is unchanged.'
+            exit 0
+          fi
+          git commit -m 'data: add all PDMX orchestra score-MIDI records [skip ci]'
+          git push
