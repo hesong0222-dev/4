@@ -9,25 +9,25 @@
   "instrument_shards": 3,
   "ensemble_counts": {
     "solo.piano": 36535,
-    "ensemble.mixed_or_unclassified": 27450,
-    "choir.vocal_ensemble": 5917,
-    "orchestra.chamber": 1661,
-    "orchestra.string": 941,
-    "voice.piano": 924,
-    "orchestra.full.symphonic": 774,
+    "ensemble.mixed_or_unclassified": 27619,
+    "choir.vocal_ensemble": 5887,
+    "orchestra.chamber": 1635,
+    "voice.piano": 899,
+    "orchestra.string": 889,
+    "band.pop_rock_candidate": 765,
     "solo.guitar": 744,
-    "band.pop_rock_candidate": 731,
-    "wind.concert_band_candidate": 676,
-    "brass_band_candidate": 334,
+    "wind.concert_band_candidate": 730,
+    "orchestra.full.symphonic": 680,
+    "brass_band_candidate": 343,
     "chamber.string_quartet": 289,
-    "jazz.combo_candidate": 173,
-    "electronic.synth_ensemble": 168,
+    "electronic.synth_ensemble": 185,
+    "jazz.combo_candidate": 117,
     "jazz.big_band_candidate": 4
   },
   "confidence_counts": {
-    "high": 37836,
-    "low": 33677,
-    "medium": 5808
+    "high": 37693,
+    "low": 34234,
+    "medium": 5394
   },
   "validation": {
     "minimum_records": 10000,
@@ -39,5 +39,12 @@
     "GM program list is track-level evidence, not exact printed staff names.",
     "PDMX CSV does not prove MIDI channel-10 drum-kit presence.",
     "Bb/C trumpet, divisi, instrument doubling and articulations require direct score parsing."
+  ],
+  "classifier_version": "v2-gm-boundary-corrected",
+  "classifier_corrections": [
+    "GM 47 Timpani excluded from string section and counted as percussion.",
+    "GM 46 Harp remains strings-family metadata but excluded from orchestral string-section identity.",
+    "GM 52/53 are acoustic choir/voice; GM 54 Synth Voice excluded from choir identity.",
+    "GM 8-15 chromatic percussion excluded from keys identity."
   ]
 }
