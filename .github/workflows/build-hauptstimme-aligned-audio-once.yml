@@ -1,0 +1,92 @@
+name: Enumerate note-aligned orchestral performances once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/build-hauptstimme-aligned-audio-once.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hauptstimme-aligned-audio-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  enumerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate extractor locally first
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile \
+            scripts/build_hauptstimme_aligned_audio_manifest.py \
+            tests/test_hauptstimme_aligned_audio_manifest.py
+          python3 -m unittest discover \
+            -s tests -p 'test_hauptstimme_aligned_audio_manifest.py' -v
+
+      - name: Fetch pinned score and alignment corpus
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch v4.7.3 \
+            https://github.com/MarkGotham/Hauptstimme.git \
+            /tmp/Hauptstimme
+
+      - name: Enumerate concrete score-audio alignment pairs
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT='data/hauptstimme-aligned-orchestra-audio'
+          rm -rf "$OUT"
+          python3 scripts/build_hauptstimme_aligned_audio_manifest.py \
+            --source-root /tmp/Hauptstimme \
+            --output "$OUT" \
+            --minimum 1
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          summary = json.loads(
+              Path('data/hauptstimme-aligned-orchestra-audio/summary.json').read_text(encoding='utf-8')
+          )
+          assert summary['validation']['passed'] is True
+          assert summary['accepted_aligned_audio_score_pairs'] > 0
+          assert summary['accepted_aligned_audio_score_pairs'] == summary['unique_match_ids']
+          assert summary['accepted_aligned_audio_score_pairs'] == summary['unique_score_imslp_pairs']
+          assert summary['human_performance'] is True
+          assert summary['audio_redistributed'] is False
+          print(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True))
+          PY
+          (cd "$OUT" && sha256sum --check SHA256SUMS)
+          {
+            echo '## Note-aligned orchestral performance catalog'
+            echo
+            echo '```json'
+            cat "$OUT/summary.json"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit generated catalog once
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/hauptstimme-aligned-orchestra-audio
+          if git diff --cached --quiet; then
+            echo 'Generated catalog is unchanged.'
+            exit 0
+          fi
+          git commit -m 'data: add note-aligned orchestral performance catalog [skip ci]'
+          git pull --rebase origin main
+          git push origin HEAD:main
