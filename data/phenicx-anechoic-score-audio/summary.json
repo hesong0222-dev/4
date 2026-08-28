@@ -1,0 +1,24 @@
+{
+  "source": "PHENICX-Anechoic",
+  "source_url": "https://www.upf.edu/web/mtg/phenicx-anechoic",
+  "zenodo_url": "https://zenodo.org/records/1289821",
+  "enumerated_orchestral_passages": 4,
+  "composers": [
+    "Mozart",
+    "Beethoven",
+    "Mahler",
+    "Bruckner"
+  ],
+  "total_duration_seconds": 637,
+  "match_class": "human_performance_instrument_track_manually_aligned",
+  "score_source": "original MIDI scores",
+  "alignment": "initial automatic score-audio alignment followed by manual alignment of each instrument track",
+  "human_performance": true,
+  "exact_printed_edition_claim": false,
+  "audio_redistributed": false,
+  "conditions": "non-commercial use; annotations and Roomsim configurations may not be redistributed or modified",
+  "validation": {
+    "passed": true,
+    "unique_records": 4
+  }
+}
