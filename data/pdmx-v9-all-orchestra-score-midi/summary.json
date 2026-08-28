@@ -1,0 +1,66 @@
+{
+  "candidate_records": 1129,
+  "canonical_deduplicated_records": 3582,
+  "counting_policy": {
+    "all": "distinct PDMX source records, including alternate arrangements/engravings",
+    "canonical": "PDMX deduplicated subset",
+    "strict": "strong automated orchestra evidence, not human staff-by-staff review"
+  },
+  "ensemble_class_counts": {
+    "orchestra.chamber": 765,
+    "orchestra.explicit_candidate": 58,
+    "orchestra.explicit_metadata": 81,
+    "orchestra.full.symphonic": 1068,
+    "orchestra.full.vocal_stage": 60,
+    "orchestra.large_palette_candidate": 1071,
+    "orchestra.string": 485,
+    "orchestra.wind": 29
+  },
+  "exactness_definition": {
+    "claim": "MXL, PDF and MIDI are associated exports of one PDMX source record",
+    "class": "same_symbolic_source_exact",
+    "human_performance_claim": false,
+    "orchestra_membership": "tiered GM-program/metadata evidence; direct score review is separate"
+  },
+  "inclusive_orchestra_score_midi_records": 3617,
+  "minimum_inclusive_passed": true,
+  "minimum_inclusive_required": 3000,
+  "probable_records": 848,
+  "rejection_counts": {
+    "explicit_non_orchestral_band": 189,
+    "guitar_or_band_bass_dominant": 623,
+    "insufficient_orchestra_evidence": 13230,
+    "keyboard_dominant": 2613,
+    "license_conflict_or_unknown": 31221,
+    "not_all_formats_valid": 36,
+    "paywalled": 169,
+    "reduction_or_piano_vocal_score": 196,
+    "too_few_bars": 55,
+    "too_few_notes": 338,
+    "too_few_tracks": 201689,
+    "too_short": 101
+  },
+  "requested_project_target": 10000,
+  "source": "PDMX v9",
+  "source_csv_expected_md5": "30392ccf38bb63ce70e7afae70f9c88c",
+  "source_csv_observed_md5": "30392ccf38bb63ce70e7afae70f9c88c",
+  "source_doi": "10.5281/zenodo.15571083",
+  "source_rows_rights_and_formats_eligible": 222651,
+  "source_rows_scanned": 254077,
+  "source_url": "https://zenodo.org/records/15571083",
+  "strict_records": 1640,
+  "target_reached": false,
+  "target_shortfall": 6383,
+  "unique_record_ids": 3617,
+  "validation": {
+    "passed": true,
+    "required_paths_present": true,
+    "unique_ids": true,
+    "unique_paths": true
+  },
+  "verification_level_counts": {
+    "candidate": 1129,
+    "probable": 848,
+    "strict": 1640
+  }
+}
