@@ -1,0 +1,35 @@
+{
+  "source": "University of Rochester Multi-Modal Music Performance (URMP)",
+  "source_dataset_url": "https://labsites.rochester.edu/air/projects/URMP.html",
+  "dataset_doi": "10.5061/dryad.ng3r749",
+  "enumerated_pieces": 44,
+  "ensemble_size_counts": {
+    "2": 11,
+    "3": 12,
+    "4": 14,
+    "5": 7
+  },
+  "individual_human_performance_tracks": 149,
+  "provided_per_piece": [
+    "MIDI musical score",
+    "individual instrument audio",
+    "assembled ensemble audio",
+    "assembled performance video",
+    "frame-level pitch annotations",
+    "note-level pitch annotations"
+  ],
+  "creation": "Individual human players recorded separately while following a common conducting video; the tracks were synchronized and assembled.",
+  "match_class": "coordinated_chamber_performance_with_score_midi",
+  "human_performance": true,
+  "full_orchestra": false,
+  "exact_printed_edition_claim": false,
+  "strict_score_audio_alignment_claim": false,
+  "boundary": "The supplied MIDI is a score reference; downstream documentation notes it should not be assumed to be an expressive performance MIDI aligned event-for-event to the audio.",
+  "audio_binary_mirrored": false,
+  "validation": {
+    "passed": true,
+    "official_annotation_labels_enumerated": 44,
+    "unique_record_ids": 44,
+    "ensemble_partition_sum": 44
+  }
+}
