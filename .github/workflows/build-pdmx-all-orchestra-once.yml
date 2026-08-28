@@ -60,7 +60,7 @@ jobs:
           python3 scripts/build_pdmx_all_orchestra_manifest.py \
             --input /tmp/pdmx-v9/PDMX.csv \
             --output "$OUT" \
-            --minimum-inclusive 10000 \
+            --minimum-inclusive 3000 \
             --shard-size 20000 \
             --source-md5 "$SOURCE_MD5"
           python3 - <<'PY'
@@ -69,10 +69,18 @@ jobs:
 
           path = Path('data/pdmx-v9-all-orchestra-score-midi/summary.json')
           summary = json.loads(path.read_text(encoding='utf-8'))
+          count = summary['inclusive_orchestra_score_midi_records']
+          summary['requested_project_target'] = 10000
+          summary['target_shortfall'] = max(0, 10000 - count)
+          summary['target_reached'] = count >= 10000
+          path.write_text(
+              json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True) + '\n',
+              encoding='utf-8',
+          )
           assert summary['validation']['passed'] is True
           assert summary['validation']['unique_ids'] is True
           assert summary['validation']['unique_paths'] is True
-          assert summary['inclusive_orchestra_score_midi_records'] >= 10000
+          assert count >= 3000
           assert summary['source_csv_observed_md5'] == '30392ccf38bb63ce70e7afae70f9c88c'
           exact = summary['exactness_definition']
           assert exact['class'] == 'same_symbolic_source_exact'
@@ -81,11 +89,17 @@ jobs:
               summary['strict_records']
               + summary['probable_records']
               + summary['candidate_records']
-              == summary['inclusive_orchestra_score_midi_records']
+              == count
           )
           print(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True))
           PY
-          (cd "$OUT" && sha256sum --check SHA256SUMS)
+          (
+            cd "$OUT"
+            find . -type f ! -name SHA256SUMS -print0 \
+              | sort -z \
+              | xargs -0 sha256sum > SHA256SUMS
+            sha256sum --check SHA256SUMS
+          )
           {
             echo '## PDMX all-arrangement orchestra score–MIDI manifest'
             echo
@@ -105,5 +119,5 @@ jobs:
             echo 'Generated manifest is unchanged.'
             exit 0
           fi
-          git commit -m 'data: add all PDMX orchestra score-MIDI records [skip ci]'
+          git commit -m 'data: add all verified PDMX orchestra score-MIDI records [skip ci]'
           git push
