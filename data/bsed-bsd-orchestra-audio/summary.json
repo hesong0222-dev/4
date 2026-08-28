@@ -1,0 +1,57 @@
+{
+  "source": "Beethoven Symphony Excerpt Dataset (BSED) and Beethoven Symphonies Dataset (BSD)",
+  "dataset_doi": "10.5281/zenodo.20344500",
+  "paper_doi": "10.5334/tismir.343",
+  "dataset_version": "1.0.0",
+  "dataset_record_url": "https://zenodo.org/records/20344500",
+  "license": "CC BY-NC-SA 4.0 for dataset website/data; paper CC BY 4.0",
+  "bsed": {
+    "scope": "Twenty short orchestral score excerpts from all nine Beethoven symphonies",
+    "score_excerpts": 20,
+    "real_concert_recordings_per_excerpt": 4,
+    "synthetic_recordings_per_excerpt": 1,
+    "score_audio_pairs_total": 100,
+    "real_score_audio_pairs": 80,
+    "synthetic_score_audio_pairs": 20,
+    "score_formats": [
+      "PDF",
+      "MusicXML",
+      "Sibelius",
+      "MIDI",
+      "CSV note events"
+    ],
+    "alignment": "robust score-audio alignment followed by manual verification and note-onset refinement",
+    "match_class": "orchestral_excerpt_score_audio_manually_verified",
+    "full_score": false,
+    "approximate_total_audio_minutes": 37
+  },
+  "bsd": {
+    "scope": "Public-domain recordings of complete Beethoven symphony movements across all nine symphonies",
+    "single_movement_recordings": 415,
+    "approximate_total_audio_hours": 63,
+    "score_basis": "digital scores",
+    "alignment": "time-aligned note annotations and structural verification; not manually refined to the same standard as BSED",
+    "match_class": "complete_orchestral_movement_score_audio_structurally_verified",
+    "full_movement_scores": true,
+    "exact_printed_edition_claim": false
+  },
+  "counting_policy": {
+    "bsed_pairs_are_not_full_score_counts": true,
+    "bsd_counts_each_recorded_movement_version_as_one_score_audio_pair": true,
+    "human_performance_claim": true,
+    "exact_printed_edition_claim": false,
+    "audio_files_mirrored_in_this_repository": false
+  },
+  "source_files": {
+    "BSD.zip_bytes_approx": 34300000000,
+    "BSD.zip_md5": "e1bd1e964afedba4380aacc0df9d0cbf",
+    "BSED.zip_bytes_approx": 908900000,
+    "BSED.zip_md5": "9e9fa72d23031c0921eaa381793c14dc"
+  },
+  "validation": {
+    "bsed_excerpt_rows_enumerated": 20,
+    "bsed_pair_count_arithmetic_valid": true,
+    "bsd_source_level_count_from_peer_reviewed_paper": 415,
+    "passed": true
+  }
+}
