@@ -1,0 +1,138 @@
+name: Calibrate humanization from real MIDI once
+
+on:
+  push:
+    branches: [data/empirical-humanization-calibration-20260828]
+    paths:
+      - .github/workflows/calibrate-humanization-from-real-midi-once.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: empirical-humanization-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  calibrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out target repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 5
+
+      - name: Validate analyzer without external dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/analyze_expression_corpora.py scripts/run_expression_calibration.py
+          PYTHONPATH=scripts python3 - <<'PY'
+          import struct, tempfile
+          from pathlib import Path
+          import analyze_expression_corpora as a
+          def vlq(v):
+              b=[v&127]; v >>= 7
+              while v: b.append((v&127)|128); v >>= 7
+              return bytes(reversed(b))
+          ev=bytearray()
+          ev += vlq(0)+bytes([0xff,0x51,3,0x07,0xa1,0x20])
+          for p in (60,64,67): ev += vlq(0)+bytes([0x90,p,80])
+          ev += vlq(480)+bytes([0x80,60,0])
+          for p in (64,67): ev += vlq(0)+bytes([0x80,p,0])
+          ev += vlq(0)+bytes([0xff,0x2f,0])
+          data=b'MThd'+struct.pack('>IHHH',6,0,1,480)+b'MTrk'+struct.pack('>I',len(ev))+ev
+          with tempfile.TemporaryDirectory() as d:
+              p=Path(d)/'x.mid'; p.write_bytes(data); m=a.parse_midi(p)
+              assert len(m['notes'])==3 and abs(m['duration']-.5)<1e-9
+              assert a.chord_spreads(m['notes'],.01)==[0.0]
+          print('local MIDI parser smoke test: PASS')
+          PY
+
+      - name: Download pinned Groove MIDI Dataset MIDI-only release
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/gmd
+          curl --fail --location --retry 5 --retry-all-errors \
+            -o /tmp/groove-v1.0.0-midionly.zip \
+            'https://storage.googleapis.com/magentadata/datasets/groove/groove-v1.0.0-midionly.zip'
+          echo '651cbc524ffb891be1a3e46d89dc82a1cecb09a57c748c7b45b844c4841dcc1e  /tmp/groove-v1.0.0-midionly.zip' | sha256sum --check -
+          unzip -q /tmp/groove-v1.0.0-midionly.zip -d /tmp/gmd
+
+      - name: Fetch public MIDI corpora from pinned GitHub snapshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/fosfrancesco/asap-dataset.git /tmp/asap
+          git clone --depth 1 https://github.com/music-x-lab/POP909-Dataset.git /tmp/pop909
+          git clone --depth 1 https://github.com/studioph/international-e-piano-dataset.git /tmp/epiano-repo
+          cat /tmp/epiano-repo/international-e-piano-midi_2002-2018.tar.gz.parta* > /tmp/epiano.tar.gz
+          mkdir -p /tmp/epiano
+          tar -xzf /tmp/epiano.tar.gz -C /tmp/epiano
+
+      - name: Analyze real MIDI and derive conservative calibration
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT='data/calibration/humanization-empirical-20260828'
+          rm -rf "$OUT"
+          PYTHONPATH=scripts python3 scripts/run_expression_calibration.py \
+            --gmd /tmp/gmd \
+            --asap /tmp/asap \
+            --epiano /tmp/epiano \
+            --pop909 /tmp/pop909 \
+            --output "$OUT"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('data/calibration/humanization-empirical-20260828')
+          s=json.loads((p/'summary.json').read_text())
+          assert s['audio_rendered'] is False and s['render_hold'] is True
+          assert s['sources']['gmd']['files'] >= 1000
+          assert s['sources']['asap']['aligned_performances'] >= 900
+          assert s['sources']['pop909']['songs'] >= 900
+          assert s['sources']['epiano']['files'] >= 500
+          assert s['status'] == 'PASS'
+          prov={
+            'generated_utc':'2026-08-28',
+            'audio_rendered':False,
+            'gmd':{
+              'release':'groove-v1.0.0-midionly.zip',
+              'sha256':'651cbc524ffb891be1a3e46d89dc82a1cecb09a57c748c7b45b844c4841dcc1e',
+              'license':'CC BY 4.0'
+            },
+            'asap':{'commit':Path('/tmp/asap/.git/refs/heads/master').read_text().strip() if Path('/tmp/asap/.git/refs/heads/master').exists() else 'see git_snapshot.txt','license':'CC BY-NC-SA 4.0'},
+            'pop909':{'commit':'see git_snapshot.txt','use':'structural advisory only'},
+            'international_e_piano':{'commit':'see git_snapshot.txt','underlying_midi_license':'unclear; advisory aggregate statistics only'}
+          }
+          (p/'source_provenance.json').write_text(json.dumps(prov,indent=2,sort_keys=True)+'\n')
+          PY
+          {
+            echo "asap $(git -C /tmp/asap rev-parse HEAD)"
+            echo "pop909 $(git -C /tmp/pop909 rev-parse HEAD)"
+            echo "international_e_piano $(git -C /tmp/epiano-repo rev-parse HEAD)"
+            echo "epiano_archive_sha256 $(sha256sum /tmp/epiano.tar.gz | awk '{print $1}')"
+          } > "$OUT/git_snapshot.txt"
+          (
+            cd "$OUT"
+            find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+            sha256sum --check SHA256SUMS
+          )
+          cat "$OUT/summary.json" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit aggregate calibration only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/calibration/humanization-empirical-20260828
+          if git diff --cached --quiet; then
+            echo 'Calibration outputs unchanged.'
+            exit 0
+          fi
+          git commit -m 'data: add empirical real-MIDI humanization calibration [skip ci]'
+          git push origin HEAD:data/empirical-humanization-calibration-20260828
