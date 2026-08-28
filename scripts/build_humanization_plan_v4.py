@@ -1,95 +1,72 @@
 #!/usr/bin/env python3
-"""Extend the canonical humanization planner with multi-family empirical priors.
-
-Plan-only: never modifies MIDI and never renders audio. Direct performance
-sources override lower-confidence aligned-transcription proxies.
+"""Multifamily empirical wrapper for build_humanization_plan.
+Plan-only; never renders audio and preserves canonical MIDI as target.
 """
 from __future__ import annotations
 import argparse, json
 from pathlib import Path
 import build_humanization_plan as base
 
-VERSION="adaptive-humanization-2026-08-28.4-multifamily"
-CONFIDENCE={
-    "REAL_CAPTURED_MIDI":1.0,
-    "REAL_PERFORMANCE_NOTE_ANNOTATION_WITH_BEATS":1.0,
-    "REAL_SCORE_ALIGNED_PERFORMANCE_MIDI":.95,
-    "DIRECT_REAL_PERFORMANCE_NOTE_ANNOTATION":.95,
-    "DIRECT_REAL_PERFORMANCE_SCORE_ALIGNED":.93,
-    "REAL_SCORE_ALIGNED_DERIVED":.90,
-    "MIXED_DIRECT_AND_PROXY":.80,
-    "ALIGNED_TRANSCRIPTION_PROXY":.62,
-    "UNRESOLVED":0.0,
-}
+VERSION='adaptive-humanization-2026-08-28.4-multifamily'
+_ORIGINAL_EMPIRICAL_ROLE=base.empirical_role
 
-def _timing_fields(rec,song_strength,speed_multiplier):
-    t=rec.get('timing') or rec.get('microtiming_residual_ms') or {}
-    if not isinstance(t,dict) or not t.get('n'):return None
-    mad=float(t.get('mad') or 0); p10=float(t.get('p10') or 0); p90=float(t.get('p90') or 0)
-    center=float(t.get('median') or 0)
-    return {
-      'timing_center_ms':round(center,4),
-      'timing_mad_ms':round(mad,4),
-      'timing_budget_mad_ms':round(mad*song_strength*speed_multiplier,4),
-      'timing_hard_cap_ms':round(max(abs(p10),abs(p90),mad*2.5)*max(.25,song_strength)*speed_multiplier,4),
+def _family_key(fam):
+    return {'woodwind':'woodwinds','keys':'keys'}.get(fam,fam)
+
+def _confidence(evidence):
+    e=str(evidence or '')
+    if e.startswith('DIRECT_REAL_CAPTURED'): return 1.0
+    if 'DIRECT_REAL_PERFORMANCE' in e: return .90
+    if 'DIRECT_REAL_SCORE_ALIGNED' in e: return .90
+    if e.startswith('MIXED:'): return .80
+    if 'ALIGNED_TRANSCRIPTION_PROXY' in e: return .62
+    return 0.0
+
+def empirical_role_v4(role,fam,cal,song_strength,speed_multiplier):
+    old=_ORIGINAL_EMPIRICAL_ROLE(role,fam,cal,song_strength,speed_multiplier)
+    if old.get('calibrated'): return old
+    if not cal: return old
+    ent=(cal.get('family_empirical') or {}).get(_family_key(fam)) or {}
+    evidence=ent.get('evidence'); weight=_confidence(evidence)
+    timing=ent.get('timing') if isinstance(ent.get('timing'),dict) else {}
+    if weight<=0 or int(timing.get('n') or 0)<100:
+        return {'calibrated':False,'reason':'no sufficient multifamily empirical timing evidence','evidence':evidence}
+    med=float(timing.get('median') or 0.0); mad=max(.5,float(timing.get('mad') or 0.0))
+    tail=max(abs(float(timing.get('p10') or med)),abs(float(timing.get('p90') or med)),mad*2.5)
+    out={
+      'calibrated':True,'source':ent.get('source') or ent.get('sources'),'evidence':evidence,
+      'confidence_weight':weight,'timing_center_ms':round(med,4),'timing_mad_ms':round(mad,4),
+      'timing_budget_mad_ms':round(mad*song_strength*speed_multiplier*weight,4),
+      'timing_hard_cap_ms':round(tail*max(.25,song_strength)*speed_multiplier*weight,4),
     }
-
-def _copy_distribution(out,key,rec,src_key=None):
-    v=rec.get(src_key or key)
-    if isinstance(v,dict) and v.get('n'):
-        out[key]={k:v.get(k) for k in ('n','median','mad','p10','p25','p75','p90') if k in v}
-
-def family_empirical(role,fam,cal,song_strength,speed_multiplier):
-    if not cal:return {'calibrated':False,'reason':'no calibration loaded'}
-    famrec=(cal.get('family_empirical') or {}).get(fam)
-    if not isinstance(famrec,dict):return {'calibrated':False,'reason':'no family empirical record'}
-    ev=str(famrec.get('evidence') or 'UNRESOLVED'); conf=CONFIDENCE.get(ev,.5)
-    tf=_timing_fields(famrec,song_strength,speed_multiplier)
-    # A source may still be valuable for gate/articulation even when timing is absent.
-    useful=tf is not None or any(isinstance(famrec.get(k),dict) and famrec[k].get('n') for k in ('velocity','gate_ratio','duration','chord_spread'))
-    if not useful or conf<=0:return {'calibrated':False,'source':famrec.get('source'),'evidence':ev,'confidence':conf,'reason':famrec.get('reason','insufficient empirical samples')}
-    out={'calibrated':True,'source':famrec.get('source'),'evidence':ev,'confidence':conf,'family':fam}
-    if tf:out.update(tf)
-    _copy_distribution(out,'velocity',famrec)
-    _copy_distribution(out,'gate_ratio',famrec)
-    _copy_distribution(out,'duration',famrec)
-    _copy_distribution(out,'chord_spread_ms',famrec,'chord_spread')
-    if isinstance(famrec.get('articulation'),dict):out['articulation']=famrec['articulation']
-    if famrec.get('timing_proxy_source'):out['timing_proxy_source']=famrec['timing_proxy_source']
+    cs=ent.get('chord_spread')
+    if isinstance(cs,dict) and cs.get('n',0):
+        out['chord_spread_ms']={k:cs.get(k) for k in ('median','p25','p75','p90')}
+    gate=ent.get('gate_ratio')
+    if isinstance(gate,dict) and gate.get('n',0):
+        out['gate_ratio']={k:gate.get(k) for k in ('median','p25','p75','p90')}
+    vel=ent.get('velocity')
+    if isinstance(vel,dict) and vel.get('n',0):
+        out['velocity']={k:vel.get(k) for k in ('median','mad','p10','p90')}
     return out
 
-def empirical_role(role,fam,cal,song_strength,speed_multiplier):
-    # Keep the stronger existing role-level calibration for GMD drums and ASAP piano.
-    direct=base.empirical_role(role,fam,cal,song_strength,speed_multiplier)
-    f=family_empirical(role,fam,cal,song_strength,speed_multiplier)
-    if not f.get('calibrated'):return direct
-    if not direct.get('calibrated'):return f
-    dconf=CONFIDENCE.get(str(direct.get('evidence') or ''),.9)
-    fconf=float(f.get('confidence',.5))
-    return direct if dconf>=fconf else f
+base.empirical_role=empirical_role_v4
 
 def build(meta,seed=None,calibration=None,calibration_path=None):
-    old=base.empirical_role
-    try:
-        base.empirical_role=empirical_role
-        p=base.build_plan(meta,seed,calibration,calibration_path)
-    finally:
-        base.empirical_role=old
-    p['policy_version']=VERSION
-    fams={t.get('family') for t in p.get('tracks',[])}
-    empirical=sorted({t.get('family') for t in p.get('tracks',[]) if (t.get('empirical_execution') or {}).get('calibrated')})
-    direct=[];proxy=[]
-    for t in p.get('tracks',[]):
-        e=t.get('empirical_execution') or {}
-        if not e.get('calibrated'):continue
-        if float(e.get('confidence',CONFIDENCE.get(str(e.get('evidence') or ''),.9)))>=.85:direct.append(t.get('family'))
-        else:proxy.append(t.get('family'))
-    p['calibration']['version']=(calibration or {}).get('calibration_version')
-    p['calibration']['automatic_empirical_families']=sorted(set(empirical))
-    p['calibration']['direct_or_high_confidence_families']=sorted(set(direct))
-    p['calibration']['lower_confidence_proxy_families']=sorted(set(proxy))
-    p['calibration']['still_provisional_families']=sorted(x for x in fams if x not in set(empirical))
-    return p
+    plan=base.build_plan(meta,seed=seed,calibration=calibration,calibration_path=calibration_path)
+    plan['policy_version']=VERSION
+    fam=(calibration or {}).get('family_empirical') or {}
+    unresolved=[]; empirical=[]; proxy=[]
+    for k,v in sorted(fam.items()):
+        ev=str(v.get('evidence') or '')
+        if ev=='UNRESOLVED': unresolved.append(k)
+        elif 'PROXY' in ev or ev.startswith('MIXED:'): proxy.append(k)
+        else: empirical.append(k)
+    plan['calibration']['automatic_empirical_families']=empirical
+    plan['calibration']['lower_confidence_proxy_families']=proxy
+    plan['calibration']['still_provisional_families']=unresolved
+    plan['calibration']['direct_overrides_proxy']=True
+    return plan
 
 def self_test():
     cal={'calibration_version':'v4','render_audio_enabled':False,'family_empirical':{
@@ -99,7 +76,7 @@ def self_test():
     meta={'work_id':'w','arrangement_id':'a','genre':'funk','tracks':[{'id':'g','family':'guitar','role':'rhythm_guitar','peak_attacks_per_second':7}]}
     p=build(meta,seed=42,calibration=cal,calibration_path='x')
     e=p['tracks'][0]['empirical_execution']; assert e['calibrated'] and e['source']=='GuitarSet' and p['render_audio_enabled'] is False
-    assert 'synth' not in p['calibration']['automatic_empirical_families']
+    assert 'synth' in p['calibration']['still_provisional_families']
     print(json.dumps(p,indent=2,sort_keys=True))
 
 def main():
