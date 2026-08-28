@@ -1,76 +1,91 @@
-# Orchestra Score–Audio / Score–MIDI Match Catalog
+# Score–MIDI / Score–Synth-Audio Catalog
 
-This repository is a reproducible orchestral **source/candidate catalog pipeline**. It does **not** currently contain 10,000 materialized score/audio binaries, and the latest strict main-branch build did not complete successfully.
+This repository stores **audited manifests, source locators, instrumentation metadata, validation logic and hashes**. It does not mirror the full upstream score/audio binaries.
 
 ## Current audited status — 2026-08-28
 
-- A one-shot PDMX workflow on branch `data/pdmx-band-pairs-10000` completed successfully with target `10,000` and produced a temporary GitHub Actions manifest artifact.
-- The later stricter main-branch workflow failed at `Build and verify exactly 10,000 rows`; its generated-catalog commit step was skipped.
-- Therefore the earlier 10k artifact is **provisional candidate-manifest evidence**, not a claim that 10,000 final verified pairs are stored in this repository.
-- `materialized MXL/PDF/MIDI`, `rendered audio`, and `human-reviewed` counts are separate metrics and must never be inferred from a target number, workflow name, README title, or temporary artifact.
+### 1. PDMX strict per-record symbolic / instrumentation manifest
 
-The broader, cross-domain source audit now lives in `hesong0222-dev/CodexWorkspace/datasets/music-source-registry/`.
+`data/pdmx-v9-record-instrument-manifest/`
+
+Generated from the pinned PDMX v9 metadata using:
+
+`subset:no_license_conflict AND subset:all_valid AND subset:deduplicated`
+
+Validated output:
+
+- **77,321 unique score records**
+- **142,342 sparse `(record_id, GM program)` rows**
+- 4 record shards: 20,000 + 20,000 + 20,000 + 17,321
+- 3 instrument-long shards
+- uniqueness/minimum-count validation: **passed**
+- derived family/ensemble classifier: **v2-gm-boundary-corrected**
+
+Each record keeps source title/composer/genre fields, raw zero-based GM-program track counts, family counts, a conservative ensemble class/confidence, same-source MXL/PDF/MID paths, license fields and exactness class.
+
+The raw GM program composition is the primary evidence. Printed staff numbering, Bb/C trumpet identity, divisi, doubling, articulation and MIDI channel-10 drum-kit presence are not fabricated when the PDMX CSV does not expose them.
+
+### 2. Audited PDMX score ↔ synthesized-audio exact pairs
+
+`data/audited-pdmx-score-synthesis/`
+
+Permanently preserved on `main`:
+
+- **24,390 mapped score/synth-audio rows**
+- **17,599 eligible exact score→synthesis pairs**
+
+This exactness is **score-to-synthesis exactness**: the synthesized audio is tied to the PDMX symbolic/MIDI source. It is not a claim that a separate human or commercial recording used the identical edition.
+
+The 17,599 rows are not added to the 77,321 symbolic count as new compositions without an explicit join/dedup, because they are mappings against the same PDMX source universe.
 
 ## Exactness classes
 
 | Class | Meaning |
 |---|---|
-| `same_symbolic_source_exact` | PDF/MusicXML/LilyPond/MuseScore representation and MIDI share the same source record |
-| `score_rendered_audio_exact` | audio is rendered directly from that exact symbolic/MIDI record |
-| `performance_midi_audio_exact` | real performance MIDI and audio were captured synchronously |
+| `same_symbolic_source_exact` | PDF/MXL/MIDI representations are associated with the same symbolic source record |
+| `score_rendered_audio_exact` | audio is rendered/synthesized from that exact symbolic/MIDI record |
+| `performance_midi_audio_exact` | real performance audio and performance MIDI were captured synchronously |
 | `score_performance_aligned` | separate score and real performance have explicit alignment annotations |
 | `work_identity_match` | title/composer/work identity matches but edition/content exactness is not proven |
 | `candidate_unverified` | discovery candidate only |
 
-Do not relabel the lower-confidence classes as `exact`.
+Do not collapse the lower-confidence classes into `exact`.
 
-## Primary symbolic source
+## PDMX evidence boundary
 
-**PDMX v9** is the bulk source because it supplies MusicXML-derived records and, when valid, associated MXL/PDF/MID exports. Preferred filtering is:
+PDMX v9 is the bulk symbolic source. This repository distinguishes upstream scale from accepted local manifests.
+
+For the 77,321-record manifest, every row must satisfy:
 
 1. `subset:no_license_conflict == True`
 2. `subset:all_valid == True`
-3. work/arrangement deduplication
-4. orchestral instrumentation classification
-5. strict path/provenance/uniqueness verification
+3. `subset:deduplicated == True`
 
-PDMX reports 222,856 songs in `no_license_conflict`; that is an upstream source-pool number, not an orchestral count.
+The resulting count is therefore a strict symbolic-manifest count, **not** an orchestral-only count. Orchestra, chamber, band, choir, jazz-candidate and other ensemble labels are derived fields and are stored with confidence/evidence notes.
 
 ## Counting rule
 
-Every number reported by this project must include one of these levels:
+Every project number should be interpreted at one of these levels:
 
 - `upstream_reported`
 - `discovered`
 - `candidate`
 - `parsed`
-- `rights_cleared`
+- `rights_filtered`
 - `deduplicated`
-- `accepted`
-- `materialized`
+- `accepted_manifest`
+- `materialized_binary`
 - `rendered`
 - `human_reviewed`
 
-If the level is omitted, the number is not publication-ready.
+The current 77,321 and 17,599 counts are **committed manifest rows**, not claims that all referenced MXL/PDF/MID/WAV binaries are copied into this Git repository.
 
-## Reproduce the PDMX candidate build
+## Rebuild
 
-```bash
-python3 scripts/build_manifest.py \
-  --input PDMX.csv \
-  --output-dir data \
-  --target 10000
+The one-shot manifest workflow downloads only the pinned PDMX metadata CSV, verifies its published MD5, runs synthetic validation, builds the strict manifest, applies the v2 GM-boundary classifier, verifies uniqueness/count invariants and commits the generated gzip shards with `[skip ci]`.
 
-python3 scripts/verify_manifest.py \
-  --catalog data/orchestra_exact_10000.csv \
-  --stats data/stats.json \
-  --target 10000
-```
+The broader cross-domain source/instrument taxonomy is maintained in:
 
-A successful run must commit or otherwise persist its generated manifest and validation report before it can be called complete.
+`hesong0222-dev/CodexWorkspace/datasets/music-source-registry/`
 
-## Storage boundary
-
-The repository intentionally stores source links, manifests, validation logic, metadata and hashes rather than duplicating hundreds of gigabytes of upstream score/audio binaries.
-
-See `DATA_LICENSE.md` and `docs/METHODOLOGY.md` for provenance and classification rules.
+See `DATA_LICENSE.md`, `docs/METHODOLOGY.md`, the generated `summary.json`, and `SHA256SUMS` before downstream use or redistribution.
