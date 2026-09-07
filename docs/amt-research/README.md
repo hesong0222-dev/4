@@ -13,10 +13,15 @@
 - `reviews/EXP01_METHOD_REVIEW_20260904/part-01.md` ~ `part-04.md`
   - 첫 Bass specialization/TPCR 계획을 비판적으로 검토한 전체 리뷰 원문.
 
-### EXP01 실행 코드
-- `../../experiments/EXP01_BassSpecialization/README_KO.md`
-- `../../experiments/EXP01_BassSpecialization/source-snapshot/part-01.md` ~ `part-04.md`
-  - `muscriptor_bass_pilot_v2.zip`의 UTF-8 연구 소스 25개를 파일 경계와 함께 전부 보존한 snapshot.
+### EXP01 실행/상태
+- `../../experiments/EXP01_BassSpecialization/STATUS.md`
+  - 현재 C1/M1/M2 진행상황과 확정 run 기록.
+- `../../experiments/EXP01_BassSpecialization/runs/C1/PROVENANCE_SUMMARY.json`
+  - C1 확정 실측치와 무결성 상태 요약. 정확한 checkpoint SHA256은 원본 provenance JSON을 authoritative source로 유지하며, 채팅에 제공되지 않은 문자열은 추측해 채우지 않는다.
+- `../../experiments/EXP01_BassSpecialization/scripts/07_train.py`
+  - 완료 run 덮어쓰기 방지 + 정상 종료 시 provenance/checksum/COMPLETE 자동 생성 trainer.
+- `../../experiments/EXP01_BassSpecialization/scripts/11_write_run_provenance.py`
+  - 구버전 trainer로 완료된 M1/M2 등의 provenance를 사후 생성하는 backfill utility.
 
 ### 전체 로드맵
 - `ROADMAP.md`
@@ -40,10 +45,20 @@
 - `M2 - M1`: TPCR replacement 이득
 - `CPD/CIPD`: context robustness 변화
 
+## EXP01 live status — 2026-09-07
+
+- **C1**: ✅ complete, 3000 steps, 73.4 min, final loss 0.5627, token acc 0.7844, peak VRAM 3.68 GB, seed 42, MuScriptor `d73147e`.
+- **M1**: 🔄 running in the latest report.
+- **M2**: ⏳ queued.
+
+Training loss/token accuracy are not cross-task scientific endpoints; C1 vs M1/M2 must be compared on the same bass evaluation metrics.
+
 ## 운영 원칙
 
 1. 새 AMT 연구 산출물은 이 저장소에 즉시 반영한다.
 2. 데이터 provenance, split, model revision, code commit, seed를 기록한다.
-3. MulTTiPop test는 설정을 잠근 뒤 최종 평가에서만 사용한다.
-4. 한 seed pilot은 screening이며 확정 결과는 multiple seeds + cluster bootstrap으로 확인한다.
-5. 최종 목표는 random/OOD 음악이 아니라 **정상 실제 음악의 transcription SOTA**다.
+3. 완료된 run directory는 기본적으로 immutable하게 취급한다. `CHECKPOINT_COMPLETE`가 있으면 새 trainer는 명시적 위험 override 없이는 재사용을 거부한다.
+4. 성공 종료 시 `provenance.json`과 `CHECKPOINT_COMPLETE`에 checkpoint/log SHA256을 자동 기록한다.
+5. MulTTiPop test는 설정을 잠근 뒤 최종 평가에서만 사용한다.
+6. 한 seed pilot은 screening이며 확정 결과는 multiple seeds + cluster bootstrap으로 확인한다.
+7. 최종 목표는 random/OOD 음악이 아니라 **정상 실제 음악의 transcription SOTA**다.
