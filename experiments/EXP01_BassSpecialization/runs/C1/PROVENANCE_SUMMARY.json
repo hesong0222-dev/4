@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "experiment": "EXP01_BassSpecialization",
+  "run_name": "C1_GeneralContinued",
+  "status": "complete",
+  "training": {
+    "steps": 3000,
+    "seed": 42,
+    "wall_clock_start_kst": "2026-09-07T07:25:35+09:00",
+    "wall_clock_end_kst": "2026-09-07T08:39:00+09:00",
+    "duration_minutes": 73.4,
+    "step_time_median_sec": 1.263,
+    "step_time_mean_sec": 1.368,
+    "peak_vram_gb": 3.68,
+    "final_loss": 0.5627,
+    "final_token_acc": 0.7844
+  },
+  "model": {
+    "muscriptor_commit": "d73147e",
+    "muscriptor_release": "v0.3.0"
+  },
+  "data": {
+    "manifest_sha256_display": "084defe6...801a7a",
+    "note": "The full manifest SHA256 exists in the original Modal/local provenance. Only the abbreviated digest was provided in the chat record used to create this GitHub summary; missing characters are intentionally not reconstructed."
+  },
+  "integrity": {
+    "checkpoint_complete_step": 3000,
+    "checkpoint_complete_marker_verified": true,
+    "three_checkpoint_files_sha256_reverified": true,
+    "sha256_values_in_this_summary": false,
+    "local_physical_backup": "~/exp01_c1_backup/",
+    "local_backup_size_gb_approx": 1.1,
+    "modal_provenance_path": "work/reports/C1_provenance.json",
+    "note": "Exact checkpoint SHA256 values remain authoritative in the original provenance/backup record and were not supplied verbatim in chat."
+  },
+  "runtime_observation": {
+    "gate2_median_sec_per_update": 7.64,
+    "gate2_predicted_hours": 6.37,
+    "actual_hours": 1.22,
+    "interpretation": "The full 3000-step measurement is the authoritative runtime measurement. The exact cause of the Gate 2 overestimate is not yet established; candidate explanations include sequence-length sampling bias and warm-up/cache effects."
+  },
+  "comparison_note": "C1 loss/token accuracy must not be directly compared with M1/M2 training loss/token accuracy because the prediction tasks and token distributions differ. The scientific comparison is bass F1 and related metrics on the same evaluation sets."
+}
